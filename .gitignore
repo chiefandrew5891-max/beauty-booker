@@ -1,0 +1,31 @@
+# Gradle
+.gradle/
+build/
+**/build/
+*.class
+
+# Local config
+local.properties
+*.properties.local
+google-services.json
+GoogleService-Info.plist
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.DS_Store
+Thumbs.db
+
+# Android
+**/release/*.apk
+**/release/*.aab
+
+# iOS
+iosApp/DerivedData/
+iosApp/*.xcworkspace/xcuserdata/
+iosApp/Pods/
+
+# Kotlin/Native
+kotlin-native-*/
