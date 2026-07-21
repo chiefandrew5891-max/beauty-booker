@@ -15,11 +15,12 @@ import com.beautyplanner.client.android.ui.auth.CompleteProfileScreen
 import com.beautyplanner.client.android.ui.booking.BookingConfirmationScreen
 import com.beautyplanner.client.android.ui.booking.BookingFormScreen
 import com.beautyplanner.client.android.ui.booking.DateTimeScreen
-import com.beautyplanner.client.android.ui.discover.DiscoverScreen
+import com.beautyplanner.client.android.ui.main.ClientMainScreen
 import com.beautyplanner.client.android.ui.master.MasterProfileScreen
 import com.beautyplanner.client.android.ui.master.ServicesScreen
 import com.beautyplanner.client.android.ui.review.LeaveReviewScreen
 import com.beautyplanner.client.android.ui.review.ReviewsScreen
+import com.beautyplanner.client.android.ui.theme.AppThemeMode
 import com.beautyplanner.client.domain.model.ClientProfile
 import com.beautyplanner.client.domain.repository.AuthRepository
 import com.beautyplanner.client.domain.repository.BookingRepository
@@ -61,7 +62,9 @@ fun AppNavigation(
     mastersRepository: MastersRepository,
     bookingRepository: BookingRepository,
     reviewsRepository: ReviewsRepository,
-    clientProfileRepository: ClientProfileRepository
+    clientProfileRepository: ClientProfileRepository,
+    themeMode: AppThemeMode,
+    onThemeModeChange: (AppThemeMode) -> Unit
 ) {
     val navController = rememberNavController()
     var currentClient by remember { mutableStateOf<ClientProfile?>(null) }
@@ -100,10 +103,13 @@ fun AppNavigation(
         }
 
         composable(Routes.DISCOVER) {
-            DiscoverScreen(
+            ClientMainScreen(
                 client = currentClient,
                 mastersRepository = mastersRepository,
+                bookingRepository = bookingRepository,
                 reviewsRepository = reviewsRepository,
+                themeMode = themeMode,
+                onThemeModeChange = onThemeModeChange,
                 onMasterClick = { masterId ->
                     navController.navigate(Routes.masterProfile(masterId))
                 }

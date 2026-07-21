@@ -25,9 +25,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -63,7 +61,8 @@ fun DiscoverScreen(
     client: ClientProfile?,
     mastersRepository: MastersRepository,
     reviewsRepository: ReviewsRepository,
-    onMasterClick: (String) -> Unit
+    onMasterClick: (String) -> Unit,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     val scope = rememberCoroutineScope()
 
@@ -110,100 +109,92 @@ fun DiscoverScreen(
         )
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(Strings.DISCOVER_TITLE, style = MaterialTheme.typography.titleMedium) }
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(contentPadding),
+        contentPadding = PaddingValues(bottom = 24.dp)
+    ) {
+        // Search field
+        item {
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                placeholder = { Text(Strings.DISCOVER_SEARCH_HINT) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                singleLine = true,
+                shape = RoundedCornerShape(24.dp)
             )
         }
-    ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            contentPadding = PaddingValues(bottom = 24.dp)
-        ) {
-            // Search field
+
+        // Category filters
+        if (categories.isNotEmpty()) {
             item {
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    placeholder = { Text(Strings.DISCOVER_SEARCH_HINT) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    singleLine = true,
-                    shape = RoundedCornerShape(24.dp)
-                )
-            }
-
-            // Category filters
-            if (categories.isNotEmpty()) {
-                item {
-                    Text(
-                        text = Strings.DISCOVER_CATEGORIES,
-                        style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-                    )
-                    Row(
-                        modifier = Modifier
-                            .horizontalScroll(rememberScrollState())
-                            .padding(horizontal = 12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        FilterChip(
-                            selected = selectedCategory == null,
-                            onClick = { selectedCategory = null },
-                            label = { Text("Все") }
-                        )
-                        categories.forEach { cat ->
-                            FilterChip(
-                                selected = selectedCategory == cat.id,
-                                onClick = {
-                                    selectedCategory = if (selectedCategory == cat.id) null else cat.id
-                                },
-                                label = { Text(cat.titleRu) }
-                            )
-                        }
-                    }
-                }
-            }
-
-            // Featured masters carousel
-            if (featuredMasters.isNotEmpty()) {
-                item {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = Strings.DISCOVER_FEATURED,
-                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    LazyRow(
-                        contentPadding = PaddingValues(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(featuredMasters) { master ->
-                            FeaturedMasterCard(master = master, onClick = { onMasterClick(master.id) })
-                        }
-                    }
-                }
-            }
-
-            // All masters list
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = Strings.DISCOVER_ALL_MASTERS,
+                    text = Strings.DISCOVER_CATEGORIES,
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                )
+                Row(
+                    modifier = Modifier
+                        .horizontalScroll(rememberScrollState())
+                        .padding(horizontal = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    FilterChip(
+                        selected = selectedCategory == null,
+                        onClick = { selectedCategory = null },
+                        label = { Text("Все") }
+                    )
+                    categories.forEach { cat ->
+                        FilterChip(
+                            selected = selectedCategory == cat.id,
+                            onClick = {
+                                selectedCategory = if (selectedCategory == cat.id) null else cat.id
+                            },
+                            label = { Text(cat.titleRu) }
+                        )
+                    }
+                }
+            }
+        }
+
+        // Featured masters carousel
+        if (featuredMasters.isNotEmpty()) {
+            item {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = Strings.DISCOVER_FEATURED,
                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(featuredMasters) { master ->
+                        FeaturedMasterCard(master = master, onClick = { onMasterClick(master.id) })
+                    }
+                }
             }
+        }
 
-            items(allMasters) { master ->
-                MasterListItem(master = master, onClick = { onMasterClick(master.id) })
-            }
+        // All masters list
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = Strings.DISCOVER_ALL_MASTERS,
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        items(allMasters) { master ->
+            MasterListItem(master = master, onClick = { onMasterClick(master.id) })
         }
     }
 }

@@ -3,7 +3,12 @@ package com.beautyplanner.client.android
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import com.beautyplanner.client.android.navigation.AppNavigation
+import com.beautyplanner.client.android.ui.theme.AppThemeMode
 import com.beautyplanner.client.android.ui.theme.BeautyPlannerTheme
 import com.beautyplanner.client.fake.FakeAuthRepository
 import com.beautyplanner.client.fake.FakeBookingRepository
@@ -28,13 +33,17 @@ class MainActivity : ComponentActivity() {
         val clientProfileRepository = FakeClientProfileRepository()
 
         setContent {
-            BeautyPlannerTheme {
+            var themeMode by rememberSaveable { mutableStateOf(AppThemeMode.SYSTEM) }
+
+            BeautyPlannerTheme(themeMode = themeMode) {
                 AppNavigation(
                     authRepository = authRepository,
                     mastersRepository = mastersRepository,
                     bookingRepository = bookingRepository,
                     reviewsRepository = reviewsRepository,
-                    clientProfileRepository = clientProfileRepository
+                    clientProfileRepository = clientProfileRepository,
+                    themeMode = themeMode,
+                    onThemeModeChange = { themeMode = it }
                 )
             }
         }
