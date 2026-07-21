@@ -12,17 +12,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -63,13 +58,10 @@ fun MasterProfileScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(master?.displayName ?: "") },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = Strings.BACK)
-                    }
-                }
+            ClientTopBar(
+                title = master?.displayName ?: "",
+                showBack = true,
+                onBackClick = onBackClick
             )
         }
     ) { innerPadding ->
@@ -162,3 +154,4 @@ fun MasterProfileScreen(
         }
     }
 }
+import com.beautyplanner.client.android.ui.common.ClientTopBar
