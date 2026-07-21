@@ -31,6 +31,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.beautyplanner.client.android.ui.common.ClientTopBar
 import com.beautyplanner.client.domain.model.ClientProfile
 import com.beautyplanner.client.domain.model.MasterProfile
 import com.beautyplanner.client.domain.repository.MastersRepository
@@ -154,4 +155,3 @@ fun MasterProfileScreen(
         }
     }
 }
-import com.beautyplanner.client.android.ui.common.ClientTopBar

@@ -359,13 +359,13 @@ private fun ProfileContent(
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(text = client?.nickname?.ifBlank { "Гость" } ?: "Гость", fontWeight = FontWeight.SemiBold)
                 Text(
-                    text = if (client?.isGuest == true) "Гостевой режим" else "Клиентский аккаунт",
+                    text = if (client?.isGuest == true) Strings.PROFILE_GUEST_MODE else Strings.PROFILE_CLIENT_MODE,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
         Text(
-            text = "Открывайте настройки через иконку в правом верхнем углу.",
+            text = Strings.PROFILE_SETTINGS_HINT,
             style = MaterialTheme.typography.bodyMedium
         )
     }
@@ -505,7 +505,7 @@ private fun SelectDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Закрыть")
+                Text(Strings.SETTINGS_CLOSE)
             }
         }
     )

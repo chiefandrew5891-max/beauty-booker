@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.beautyplanner.client.android.ui.common.ClientTopBar
 import com.beautyplanner.client.domain.model.ClientProfile
 import com.beautyplanner.client.domain.model.MasterReview
 import com.beautyplanner.client.domain.repository.ReviewsRepository
@@ -127,4 +128,3 @@ fun ReviewCard(review: MasterReview) {
         }
     }
 }
-import com.beautyplanner.client.android.ui.common.ClientTopBar

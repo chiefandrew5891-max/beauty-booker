@@ -90,6 +90,10 @@ object Strings {
     const val SETTINGS_THEME_SYSTEM = "Системная"
     const val SETTINGS_THEME_LIGHT = "Светлая"
     const val SETTINGS_THEME_DARK = "Тёмная"
+    const val SETTINGS_CLOSE = "Закрыть"
+    const val PROFILE_GUEST_MODE = "Гостевой режим"
+    const val PROFILE_CLIENT_MODE = "Клиентский аккаунт"
+    const val PROFILE_SETTINGS_HINT = "Открывайте настройки через иконку в правом верхнем углу."
 
     // ── Guest restriction messages ────────────────────────────────────────────
     const val GUEST_BOOKING_BLOCKED =

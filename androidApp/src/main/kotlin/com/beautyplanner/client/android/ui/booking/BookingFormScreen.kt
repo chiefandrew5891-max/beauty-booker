@@ -23,6 +23,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.beautyplanner.client.android.ui.common.ClientTopBar
 import com.beautyplanner.client.domain.model.BookingRequest
 import com.beautyplanner.client.domain.model.ClientProfile
 import com.beautyplanner.client.domain.model.MasterProfile
@@ -134,4 +135,3 @@ fun BookingFormScreen(
         }
     }
 }
-import com.beautyplanner.client.android.ui.common.ClientTopBar

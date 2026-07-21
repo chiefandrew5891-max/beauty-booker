@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.beautyplanner.client.android.ui.common.ClientTopBar
 import com.beautyplanner.client.domain.model.AvailableSlot
 import com.beautyplanner.client.domain.model.ClientProfile
 import com.beautyplanner.client.domain.repository.BookingRepository
@@ -94,4 +95,3 @@ private fun SlotItem(slot: AvailableSlot, onSelect: () -> Unit) {
         }
     }
 }
-import com.beautyplanner.client.android.ui.common.ClientTopBar

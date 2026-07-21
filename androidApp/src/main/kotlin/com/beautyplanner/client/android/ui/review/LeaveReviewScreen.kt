@@ -28,6 +28,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.beautyplanner.client.android.ui.common.ClientTopBar
 import com.beautyplanner.client.domain.model.ClientProfile
 import com.beautyplanner.client.domain.model.ReviewSubmission
 import com.beautyplanner.client.domain.repository.ReviewsRepository
@@ -149,4 +150,3 @@ fun LeaveReviewScreen(
         }
     }
 }
-import com.beautyplanner.client.android.ui.common.ClientTopBar
