@@ -6,7 +6,7 @@
     <application
         android:allowBackup="true"
         android:label="Beauty Planner"
-        android:theme="@style/Theme.AppCompat.DayNight.NoActionBar"
+        android:theme="@style/Theme.BeautyPlannerClient"
         android:supportsRtl="true">
 
         <activity
