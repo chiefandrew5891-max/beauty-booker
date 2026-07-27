@@ -47,4 +47,5 @@ dependencies {
     implementation(libs.navigation.compose)
     implementation(libs.coil.compose)
     implementation(libs.coroutines.android)
+    implementation("androidx.compose.material:material-icons-extended")
 }

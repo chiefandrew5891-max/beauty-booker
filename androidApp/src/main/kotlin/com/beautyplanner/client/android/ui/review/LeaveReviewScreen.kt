@@ -34,6 +34,9 @@ import com.beautyplanner.client.domain.model.ReviewSubmission
 import com.beautyplanner.client.domain.repository.ReviewsRepository
 import com.beautyplanner.client.strings.Strings
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Star
 
 /**
  * Screen for submitting a review after a completed appointment.

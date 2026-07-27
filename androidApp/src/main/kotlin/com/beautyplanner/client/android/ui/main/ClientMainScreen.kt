@@ -63,6 +63,7 @@ import com.beautyplanner.client.domain.repository.ReviewsRepository
 import com.beautyplanner.client.strings.LanguageOption
 import com.beautyplanner.client.strings.Strings
 
+
 private enum class MainTab(
     val title: String,
     val icon: ImageVector

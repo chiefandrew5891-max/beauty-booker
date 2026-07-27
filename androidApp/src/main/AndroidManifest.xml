@@ -5,7 +5,8 @@
 
     <application
         android:allowBackup="true"
-        android:label="Beauty Planner"
+        android:icon="@mipmap/ic_launcher"
+        android:label="Beauty Booker"
         android:theme="@style/Theme.BeautyPlannerClient"
         android:supportsRtl="true">
 
