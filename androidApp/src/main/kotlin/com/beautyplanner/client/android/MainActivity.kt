@@ -1,7 +1,6 @@
 package com.beautyplanner.client.android
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.getValue
@@ -16,18 +15,11 @@ import com.beautyplanner.client.android.ui.theme.BeautyPlannerTheme
 import com.beautyplanner.client.fake.FakeAuthRepository
 import com.beautyplanner.client.fake.FakeClientProfileRepository
 import com.beautyplanner.client.fake.FakeReviewsRepository
-import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.FirebaseFirestore
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val firebaseApp = FirebaseApp.getInstance()
-        Log.d("FirebaseConfigCheck", "applicationId=$packageName")
-        Log.d("FirebaseConfigCheck", "projectId=${firebaseApp.options.projectId}")
-        Log.d("FirebaseConfigCheck", "applicationIdFromFirebase=${firebaseApp.options.applicationId}")
-        Log.d("FirebaseConfigCheck", "gcmSenderId=${firebaseApp.options.gcmSenderId}")
 
         val firestore = FirebaseFirestore.getInstance()
 
@@ -43,7 +35,7 @@ class MainActivity : ComponentActivity() {
         val clientProfileRepository = FakeClientProfileRepository()
 
         setContent {
-            var themeMode by rememberSaveable { mutableStateOf(AppThemeMode.SYSTEM) }
+            var themeMode by rememberSaveable { mutableStateOf(AppThemeMode.LIGHT) }
 
             BeautyPlannerTheme(themeMode = themeMode) {
                 AppNavigation(

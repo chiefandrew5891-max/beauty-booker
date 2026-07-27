@@ -2,7 +2,6 @@ package com.beautyplanner.client.android.ui.discover
 
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -49,8 +48,6 @@ import com.beautyplanner.client.domain.repository.MastersRepository
 import com.beautyplanner.client.domain.repository.ReviewsRepository
 import com.beautyplanner.client.strings.Strings
 import kotlinx.coroutines.launch
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.ui.graphics.Color
 
 /**
  * Discover / home screen.
@@ -74,35 +71,14 @@ fun DiscoverScreen(
     var selectedCategory by remember { mutableStateOf<String?>(null) }
     var searchQuery by remember { mutableStateOf("") }
     var pendingPrompt by remember { mutableStateOf<PendingReviewPrompt?>(null) }
-    var debugStatus by remember { mutableStateOf("idle") }
-    var debugFirstMaster by remember { mutableStateOf("none") }
-    var debugDirectMaster by remember { mutableStateOf("not checked") }
 
     LaunchedEffect(Unit) {
-        debugStatus = "loading..."
+        categories = mastersRepository.getCategories()
+        featuredMasters = mastersRepository.getFeaturedMasters()
+        allMasters = mastersRepository.getMasters()
 
-        runCatching {
-            categories = mastersRepository.getCategories()
-            featuredMasters = mastersRepository.getFeaturedMasters()
-            allMasters = mastersRepository.getMasters()
-            val directMaster = mastersRepository.getMasterById("ejSGirN50WMRU5YcStiBROZWcr13")
-            debugDirectMaster = directMaster?.let {
-                "direct: id=${it.id}, name=${it.displayName}, spec=${it.specialtyTitle}, rating=${it.averageRating}"
-            } ?: "direct: null"
-
-            debugStatus =
-                "loaded: categories=${categories.size}, featured=${featuredMasters.size}, allMasters=${allMasters.size}"
-
-            debugFirstMaster = allMasters.firstOrNull()?.let {
-                "id=${it.id}, name=${it.displayName}, spec=${it.specialtyTitle}, rating=${it.averageRating}"
-            } ?: "no masters"
-
-            if (client != null && !client.isGuest) {
-                pendingPrompt = reviewsRepository.getPendingPrompts(client.id).firstOrNull()
-            }
-        }.onFailure { error ->
-            debugStatus = "error: ${error.message}"
-            debugFirstMaster = error.stackTraceToString()
+        if (client != null && !client.isGuest) {
+            pendingPrompt = reviewsRepository.getPendingPrompts(client.id).firstOrNull()
         }
     }
 
@@ -113,11 +89,10 @@ fun DiscoverScreen(
         )
     }
 
-    // Review reminder popup
     pendingPrompt?.let { prompt ->
         ReviewReminderDialog(
             prompt = prompt,
-            onLeaveReview = { /* navigate via callback is handled externally */ },
+            onLeaveReview = { },
             onSnooze = {
                 scope.launch {
                     reviewsRepository.snoozePrompt(prompt.id, "2025-09-01T00:00:00")
@@ -140,34 +115,6 @@ fun DiscoverScreen(
         contentPadding = PaddingValues(bottom = 24.dp)
     ) {
         item {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-            ) {
-                Text(
-                    text = "DEBUG: $debugStatus",
-                    color = Color.Red,
-                    style = MaterialTheme.typography.bodySmall
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "DEBUG FIRST: $debugFirstMaster",
-                    color = Color.Red,
-                    style = MaterialTheme.typography.bodySmall
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "DEBUG DIRECT: $debugDirectMaster",
-                    color = Color.Red,
-                    style = MaterialTheme.typography.bodySmall
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                HorizontalDivider()
-            }
-        }
-        // Search field
-        item {
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
@@ -180,7 +127,6 @@ fun DiscoverScreen(
             )
         }
 
-        // Category filters
         if (categories.isNotEmpty()) {
             item {
                 Text(
@@ -212,7 +158,6 @@ fun DiscoverScreen(
             }
         }
 
-        // Featured masters carousel
         if (featuredMasters.isNotEmpty()) {
             item {
                 Spacer(modifier = Modifier.height(12.dp))
@@ -233,7 +178,6 @@ fun DiscoverScreen(
             }
         }
 
-        // All masters list
         item {
             Spacer(modifier = Modifier.height(16.dp))
             Text(
