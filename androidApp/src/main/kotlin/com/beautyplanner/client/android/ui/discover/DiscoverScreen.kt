@@ -49,6 +49,8 @@ import com.beautyplanner.client.domain.repository.MastersRepository
 import com.beautyplanner.client.domain.repository.ReviewsRepository
 import com.beautyplanner.client.strings.Strings
 import kotlinx.coroutines.launch
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.graphics.Color
 
 /**
  * Discover / home screen.
@@ -72,13 +74,30 @@ fun DiscoverScreen(
     var selectedCategory by remember { mutableStateOf<String?>(null) }
     var searchQuery by remember { mutableStateOf("") }
     var pendingPrompt by remember { mutableStateOf<PendingReviewPrompt?>(null) }
+    var debugStatus by remember { mutableStateOf("idle") }
+    var debugFirstMaster by remember { mutableStateOf("none") }
 
     LaunchedEffect(Unit) {
-        categories = mastersRepository.getCategories()
-        featuredMasters = mastersRepository.getFeaturedMasters()
-        allMasters = mastersRepository.getMasters()
-        if (client != null && !client.isGuest) {
-            pendingPrompt = reviewsRepository.getPendingPrompts(client.id).firstOrNull()
+        debugStatus = "loading..."
+
+        runCatching {
+            categories = mastersRepository.getCategories()
+            featuredMasters = mastersRepository.getFeaturedMasters()
+            allMasters = mastersRepository.getMasters()
+
+            debugStatus =
+                "loaded: categories=${categories.size}, featured=${featuredMasters.size}, allMasters=${allMasters.size}"
+
+            debugFirstMaster = allMasters.firstOrNull()?.let {
+                "id=${it.id}, name=${it.displayName}, spec=${it.specialtyTitle}, rating=${it.averageRating}"
+            } ?: "no masters"
+
+            if (client != null && !client.isGuest) {
+                pendingPrompt = reviewsRepository.getPendingPrompts(client.id).firstOrNull()
+            }
+        }.onFailure { error ->
+            debugStatus = "error: ${error.message}"
+            debugFirstMaster = error.stackTraceToString()
         }
     }
 
@@ -115,6 +134,27 @@ fun DiscoverScreen(
             .padding(contentPadding),
         contentPadding = PaddingValues(bottom = 24.dp)
     ) {
+        item {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                Text(
+                    text = "DEBUG: $debugStatus",
+                    color = Color.Red,
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "DEBUG FIRST: $debugFirstMaster",
+                    color = Color.Red,
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                HorizontalDivider()
+            }
+        }
         // Search field
         item {
             OutlinedTextField(
