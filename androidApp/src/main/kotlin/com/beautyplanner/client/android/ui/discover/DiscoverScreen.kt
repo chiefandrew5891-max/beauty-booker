@@ -76,6 +76,7 @@ fun DiscoverScreen(
     var pendingPrompt by remember { mutableStateOf<PendingReviewPrompt?>(null) }
     var debugStatus by remember { mutableStateOf("idle") }
     var debugFirstMaster by remember { mutableStateOf("none") }
+    var debugDirectMaster by remember { mutableStateOf("not checked") }
 
     LaunchedEffect(Unit) {
         debugStatus = "loading..."
@@ -84,6 +85,10 @@ fun DiscoverScreen(
             categories = mastersRepository.getCategories()
             featuredMasters = mastersRepository.getFeaturedMasters()
             allMasters = mastersRepository.getMasters()
+            val directMaster = mastersRepository.getMasterById("ejSGirN50WMRU5YcStiBROZWcr13")
+            debugDirectMaster = directMaster?.let {
+                "direct: id=${it.id}, name=${it.displayName}, spec=${it.specialtyTitle}, rating=${it.averageRating}"
+            } ?: "direct: null"
 
             debugStatus =
                 "loaded: categories=${categories.size}, featured=${featuredMasters.size}, allMasters=${allMasters.size}"
@@ -148,6 +153,12 @@ fun DiscoverScreen(
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "DEBUG FIRST: $debugFirstMaster",
+                    color = Color.Red,
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "DEBUG DIRECT: $debugDirectMaster",
                     color = Color.Red,
                     style = MaterialTheme.typography.bodySmall
                 )
