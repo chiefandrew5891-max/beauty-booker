@@ -1,5 +1,6 @@
 package com.beautyplanner.client.android.ui.master
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -25,6 +26,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.beautyplanner.client.android.ui.common.ClientTopBar
@@ -33,9 +35,6 @@ import com.beautyplanner.client.domain.model.MasterService
 import com.beautyplanner.client.domain.repository.MastersRepository
 import com.beautyplanner.client.strings.Strings
 
-/**
- * Lists all services offered by a master so the client can choose one to book.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ServicesScreen(
@@ -46,9 +45,21 @@ fun ServicesScreen(
     onBackClick: () -> Unit
 ) {
     var services by remember { mutableStateOf<List<MasterService>>(emptyList()) }
+    var debugStatus by remember { mutableStateOf("loading...") }
+    var debugFirstService by remember { mutableStateOf("none") }
 
     LaunchedEffect(masterId) {
-        services = mastersRepository.getServicesForMaster(masterId)
+        runCatching {
+            val loaded = mastersRepository.getServicesForMaster(masterId)
+            services = loaded
+            debugStatus = "masterId=$masterId, services=${loaded.size}"
+            debugFirstService = loaded.firstOrNull()?.let {
+                "id=${it.id}, title=${it.titleRu}, price=${it.price}, duration=${it.durationMinutes}, currency=${it.currency}"
+            } ?: "no services"
+        }.onFailure {
+            debugStatus = "error: ${it.message}"
+            debugFirstService = "failed"
+        }
     }
 
     Scaffold(
@@ -66,12 +77,36 @@ fun ServicesScreen(
                 .padding(innerPadding),
             contentPadding = PaddingValues(16.dp)
         ) {
-            items(services) { service ->
-                ServiceItem(
-                    service = service,
-                    onSelect = { onServiceSelected(service.id) }
+            item {
+                Text(
+                    text = "DEBUG: $debugStatus",
+                    color = Color.Red,
+                    style = MaterialTheme.typography.bodySmall
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "DEBUG FIRST: $debugFirstService",
+                    color = Color.Red,
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+
+            if (services.isEmpty()) {
+                item {
+                    Text(
+                        text = "У этого мастера пока нет доступных услуг",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            } else {
+                items(services) { service ->
+                    ServiceItem(
+                        service = service,
+                        onSelect = { onServiceSelected(service.id) }
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
             }
         }
     }

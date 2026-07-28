@@ -12,8 +12,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -34,13 +37,10 @@ import coil.compose.AsyncImage
 import com.beautyplanner.client.android.ui.common.ClientTopBar
 import com.beautyplanner.client.domain.model.ClientProfile
 import com.beautyplanner.client.domain.model.MasterProfile
+import com.beautyplanner.client.domain.model.MasterService
 import com.beautyplanner.client.domain.repository.MastersRepository
 import com.beautyplanner.client.strings.Strings
 
-/**
- * Master profile screen.
- * Displays avatar, name, specialty, rating, bio, and CTAs to book or view reviews.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MasterProfileScreen(
@@ -52,9 +52,11 @@ fun MasterProfileScreen(
     onBackClick: () -> Unit
 ) {
     var master by remember { mutableStateOf<MasterProfile?>(null) }
+    var services by remember { mutableStateOf<List<MasterService>>(emptyList()) }
 
     LaunchedEffect(masterId) {
         master = mastersRepository.getMasterById(masterId)
+        services = mastersRepository.getServicesForMaster(masterId)
     }
 
     Scaffold(
@@ -96,7 +98,34 @@ fun MasterProfileScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                if (services.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    HorizontalDivider(modifier = Modifier.fillMaxWidth())
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            text = "Услуги",
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold)
+                        )
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        services.forEach { service ->
+                            AssistChip(
+                                onClick = onServicesClick,
+                                label = { Text(service.titleRu) },
+                                colors = AssistChipDefaults.assistChipColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
@@ -124,7 +153,6 @@ fun MasterProfileScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Book now — disabled for guests
                 if (client?.isGuest == true) {
                     Text(
                         text = Strings.GUEST_BOOKING_BLOCKED,

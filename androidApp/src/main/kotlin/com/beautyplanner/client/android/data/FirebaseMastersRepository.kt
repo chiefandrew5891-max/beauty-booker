@@ -109,23 +109,40 @@ class FirebaseMastersRepository(
                 val item = rawItem as? Map<*, *> ?: return@mapIndexedNotNull null
 
                 val id = item["id"]?.toString()?.trim().orEmpty()
-                val rawTitle = item["title"]?.toString()?.trim().orEmpty()
+                val rawTitle = item["title"]?.toString()?.trim()
+                    ?.takeIf { it.isNotBlank() }
+                    ?: item["name"]?.toString()?.trim()
+                        ?.takeIf { it.isNotBlank() }
+                    ?: item["serviceId"]?.toString()?.trim()
+                        ?.takeIf { it.isNotBlank() }
+                    ?: id.takeIf { it.isNotBlank() }
+                    ?: "Услуга ${index + 1}"
+
                 val description = item["description"]?.toString()?.trim().orEmpty()
-                val defaultPrice = item["defaultPrice"]?.toString()?.trim().orEmpty()
+
+                val price = when (val raw = item["defaultPrice"]) {
+                    is Number -> raw.toDouble()
+                    is String -> raw.trim().replace(",", ".").toDoubleOrNull() ?: 0.0
+                    else -> 0.0
+                }
+
                 val currency = item["currency"]?.toString()?.trim().orEmpty()
+
                 val durationMinutes = when (val raw = item["durationMinutes"]) {
                     is Number -> raw.toInt()
                     is String -> raw.toIntOrNull() ?: 60
                     else -> 60
                 }
+
                 val isActive = when (val raw = item["isActive"]) {
                     is Boolean -> raw
                     is String -> raw.equals("true", ignoreCase = true)
                     is Number -> raw.toInt() != 0
+                    null -> true
                     else -> true
                 }
 
-                if (!isActive || rawTitle.isBlank()) return@mapIndexedNotNull null
+                if (!isActive) return@mapIndexedNotNull null
 
                 MasterService(
                     id = if (id.isNotBlank()) id else "svc_${masterId}_$index",
@@ -133,7 +150,7 @@ class FirebaseMastersRepository(
                     titleRu = resolveServiceTitle(rawTitle),
                     descriptionRu = description,
                     durationMinutes = durationMinutes,
-                    price = defaultPrice.toDoubleOrNull() ?: 0.0,
+                    price = price,
                     currency = currency.ifBlank { "UAH" }
                 )
             }
