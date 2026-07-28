@@ -33,11 +33,6 @@ import com.beautyplanner.client.domain.repository.MastersRepository
 import com.beautyplanner.client.strings.Strings
 import kotlinx.coroutines.launch
 
-/**
- * Booking confirmation form.
- * Shows a summary of the master, service, slot, and a note field.
- * Only non-guest clients can reach this screen.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookingFormScreen(
@@ -56,6 +51,10 @@ fun BookingFormScreen(
     var note by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    val appointmentDateTime = remember(slotId) {
+        slotId.substringAfter("${masterId}_${serviceId}_", "")
+    }
 
     LaunchedEffect(masterId, serviceId) {
         master = mastersRepository.getMasterById(masterId)
@@ -84,6 +83,13 @@ fun BookingFormScreen(
             service?.let {
                 Text("Услуга: ${it.titleRu}", style = MaterialTheme.typography.bodyMedium)
                 Text("Стоимость: ${it.price.toInt()} ${it.currency}", style = MaterialTheme.typography.bodySmall)
+            }
+            if (appointmentDateTime.isNotBlank()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    "Дата и время: ${appointmentDateTime.replace("T", " ")}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -118,7 +124,7 @@ fun BookingFormScreen(
                             masterId = masterId,
                             serviceId = serviceId,
                             slotId = slotId,
-                            appointmentDateTime = slotId,
+                            appointmentDateTime = appointmentDateTime,
                             noteFromClient = note.trim()
                         )
                         bookingRepository.submitBooking(request)

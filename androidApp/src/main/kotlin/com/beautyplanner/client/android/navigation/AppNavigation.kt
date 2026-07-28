@@ -12,9 +12,10 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.beautyplanner.client.android.ui.auth.AuthScreen
 import com.beautyplanner.client.android.ui.auth.CompleteProfileScreen
+import com.beautyplanner.client.android.ui.booking.BookingCalendarScreen
 import com.beautyplanner.client.android.ui.booking.BookingConfirmationScreen
+import com.beautyplanner.client.android.ui.booking.BookingDayScreen
 import com.beautyplanner.client.android.ui.booking.BookingFormScreen
-import com.beautyplanner.client.android.ui.booking.DateTimeScreen
 import com.beautyplanner.client.android.ui.main.ClientMainScreen
 import com.beautyplanner.client.android.ui.master.MasterProfileScreen
 import com.beautyplanner.client.android.ui.master.ServicesScreen
@@ -28,14 +29,14 @@ import com.beautyplanner.client.domain.repository.ClientProfileRepository
 import com.beautyplanner.client.domain.repository.MastersRepository
 import com.beautyplanner.client.domain.repository.ReviewsRepository
 
-/** Named route constants for the app. */
 object Routes {
     const val AUTH = "auth"
     const val COMPLETE_PROFILE = "complete_profile"
     const val DISCOVER = "discover"
     const val MASTER_PROFILE = "master_profile/{masterId}"
     const val SERVICES = "services/{masterId}"
-    const val DATE_TIME = "date_time/{masterId}/{serviceId}"
+    const val BOOKING_CALENDAR = "booking_calendar/{masterId}/{serviceId}"
+    const val BOOKING_DAY = "booking_day/{masterId}/{serviceId}/{date}"
     const val BOOKING_FORM = "booking_form/{masterId}/{serviceId}/{slotId}"
     const val BOOKING_CONFIRMATION = "booking_confirmation/{bookingId}"
     const val REVIEWS = "reviews/{masterId}"
@@ -43,7 +44,10 @@ object Routes {
 
     fun masterProfile(masterId: String) = "master_profile/$masterId"
     fun services(masterId: String) = "services/$masterId"
-    fun dateTime(masterId: String, serviceId: String) = "date_time/$masterId/$serviceId"
+    fun bookingCalendar(masterId: String, serviceId: String) =
+        "booking_calendar/$masterId/$serviceId"
+    fun bookingDay(masterId: String, serviceId: String, date: String) =
+        "booking_day/$masterId/$serviceId/$date"
     fun bookingForm(masterId: String, serviceId: String, slotId: String) =
         "booking_form/$masterId/$serviceId/$slotId"
     fun bookingConfirmation(bookingId: String) = "booking_confirmation/$bookingId"
@@ -52,10 +56,6 @@ object Routes {
         "leave_review/$masterId/$appointmentId"
 }
 
-/**
- * Root composable that owns the NavController and wires all screens together.
- * All repository dependencies are passed in from [MainActivity].
- */
 @Composable
 fun AppNavigation(
     authRepository: AuthRepository,
@@ -141,14 +141,14 @@ fun AppNavigation(
                 client = currentClient,
                 mastersRepository = mastersRepository,
                 onServiceSelected = { serviceId ->
-                    navController.navigate(Routes.dateTime(masterId, serviceId))
+                    navController.navigate(Routes.bookingCalendar(masterId, serviceId))
                 },
                 onBackClick = { navController.popBackStack() }
             )
         }
 
         composable(
-            Routes.DATE_TIME,
+            Routes.BOOKING_CALENDAR,
             arguments = listOf(
                 navArgument("masterId") { type = NavType.StringType },
                 navArgument("serviceId") { type = NavType.StringType }
@@ -156,12 +156,38 @@ fun AppNavigation(
         ) { backStack ->
             val masterId = backStack.arguments?.getString("masterId") ?: return@composable
             val serviceId = backStack.arguments?.getString("serviceId") ?: return@composable
-            DateTimeScreen(
+
+            BookingCalendarScreen(
                 masterId = masterId,
                 serviceId = serviceId,
-                client = currentClient,
+                mastersRepository = mastersRepository,
                 bookingRepository = bookingRepository,
-                onSlotSelected = { slotId ->
+                onDateSelected = { date ->
+                    navController.navigate(Routes.bookingDay(masterId, serviceId, date))
+                },
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            Routes.BOOKING_DAY,
+            arguments = listOf(
+                navArgument("masterId") { type = NavType.StringType },
+                navArgument("serviceId") { type = NavType.StringType },
+                navArgument("date") { type = NavType.StringType }
+            )
+        ) { backStack ->
+            val masterId = backStack.arguments?.getString("masterId") ?: return@composable
+            val serviceId = backStack.arguments?.getString("serviceId") ?: return@composable
+            val date = backStack.arguments?.getString("date") ?: return@composable
+
+            BookingDayScreen(
+                masterId = masterId,
+                serviceId = serviceId,
+                date = date,
+                mastersRepository = mastersRepository,
+                bookingRepository = bookingRepository,
+                onTimeSelected = { slotId ->
                     navController.navigate(Routes.bookingForm(masterId, serviceId, slotId))
                 },
                 onBackClick = { navController.popBackStack() }
