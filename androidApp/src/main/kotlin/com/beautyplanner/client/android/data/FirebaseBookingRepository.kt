@@ -121,13 +121,13 @@ class FirebaseBookingRepository(
 
             val dayBusy = snapshot.busySlots
                 .filter { it.date == dateString }
-                .sortedBy { parseTimeHm(it.startTime) }
+                .sortedBy { parseTimeHm(it.startTime) ?: LocalTime.MIN }
 
             val dayOfWeek = date.dayOfWeek.value
             val weeklyBlocked = snapshot.weeklyBlockedIntervals.filter { it.dayOfWeek == dayOfWeek }
 
-            var cursor = parseTimeHm(snapshot.workDayStart)
-            val endOfDay = parseTimeHm(snapshot.workDayEnd)
+            var cursor = parseTimeHm(snapshot.workDayStart) ?: LocalTime.of(9, 0)
+            val endOfDay = parseTimeHm(snapshot.workDayEnd) ?: LocalTime.of(18, 0)
             val duration = service.durationMinutes.toLong()
 
             while (true) {
@@ -135,14 +135,14 @@ class FirebaseBookingRepository(
                 if (slotEnd > endOfDay) break
 
                 val overlapsBusy = dayBusy.any { busy ->
-                    val busyStart = parseTimeHm(busy.startTime)
-                    val busyEnd = parseTimeHm(busy.endTime)
+                    val busyStart = parseTimeHm(busy.startTime) ?: return@any false
+                    val busyEnd = parseTimeHm(busy.endTime) ?: return@any false
                     cursor < busyEnd && busyStart < slotEnd
                 }
 
                 val overlapsWeeklyBlock = weeklyBlocked.any { interval ->
-                    val blockStart = parseTimeHm(interval.startTime)
-                    val blockEnd = parseTimeHm(interval.endTime)
+                    val blockStart = parseTimeHm(interval.startTime) ?: return@any false
+                    val blockEnd = parseTimeHm(interval.endTime) ?: return@any false
                     cursor < blockEnd && blockStart < slotEnd
                 }
 
@@ -166,7 +166,7 @@ class FirebaseBookingRepository(
         return result
     }
 
-    private fun parseTimeHm(value: String): LocalTime {
-        return LocalTime.parse(value.trim())
+    private fun parseTimeHm(value: String): LocalTime? {
+        return runCatching { LocalTime.parse(value.trim()) }.getOrNull()
     }
 }

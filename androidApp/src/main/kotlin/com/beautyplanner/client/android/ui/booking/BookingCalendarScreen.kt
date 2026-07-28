@@ -51,12 +51,14 @@ import com.beautyplanner.client.domain.model.ScheduleSnapshot
 import com.beautyplanner.client.domain.repository.BookingRepository
 import com.beautyplanner.client.domain.repository.MastersRepository
 import com.beautyplanner.client.strings.Strings
-import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
+
+/** Slot grid step in minutes — how often available times are offered. */
+internal const val SLOT_STEP_MINUTES = 30L
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -368,7 +370,7 @@ internal fun hasAvailableSlot(
         }
 
         if (!isBusy && !isWeeklyBlocked) return true
-        cursor = cursor.plusMinutes(30)
+        cursor = cursor.plusMinutes(SLOT_STEP_MINUTES)
     }
     return false
 }

@@ -183,7 +183,7 @@ private fun DaySlotList(
 
             val available = !isPastTime && !isBusy && !isWeeklyBlocked
             result.add(TimeSlot(startTime = cursor, endTime = slotEnd, isAvailable = available))
-            cursor = cursor.plusMinutes(30)
+            cursor = cursor.plusMinutes(SLOT_STEP_MINUTES)
         }
         result
     }
