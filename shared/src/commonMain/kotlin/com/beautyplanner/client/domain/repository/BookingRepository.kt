@@ -2,6 +2,7 @@ package com.beautyplanner.client.domain.repository
 
 import com.beautyplanner.client.domain.model.AvailableSlot
 import com.beautyplanner.client.domain.model.BookingRequest
+import com.beautyplanner.client.domain.model.ScheduleSnapshot
 
 /**
  * Data contract for booking slots and submitting/reading booking requests.
@@ -11,6 +12,11 @@ import com.beautyplanner.client.domain.model.BookingRequest
  */
 interface BookingRepository {
     suspend fun getAvailableSlots(masterId: String, serviceId: String): List<AvailableSlot>
+    /**
+     * Returns a schedule snapshot for the given master so the client app can
+     * compute free/busy states locally.
+     */
+    suspend fun getScheduleSnapshot(masterId: String): ScheduleSnapshot
     /**
      * Submit a booking request.
      * Only authenticated (non-guest) clients may call this.

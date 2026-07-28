@@ -3,7 +3,11 @@ package com.beautyplanner.client.android.data
 import com.beautyplanner.client.domain.model.AvailableSlot
 import com.beautyplanner.client.domain.model.BookingRequest
 import com.beautyplanner.client.domain.model.BookingStatus
+import com.beautyplanner.client.domain.model.BusySlotModel
+import com.beautyplanner.client.domain.model.DateOverride
 import com.beautyplanner.client.domain.model.MasterService
+import com.beautyplanner.client.domain.model.ScheduleSnapshot
+import com.beautyplanner.client.domain.model.WeeklyBlockedInterval
 import com.beautyplanner.client.domain.repository.BookingRepository
 import com.beautyplanner.client.domain.repository.MastersRepository
 import com.google.firebase.firestore.FirebaseFirestore
@@ -27,11 +31,63 @@ class FirebaseBookingRepository(
             .firstOrNull { it.id == serviceId }
             ?: return emptyList()
 
-        val busySlots = loadBusySlots(masterId)
-        return buildAvailableSlots(
+        val snapshot = getScheduleSnapshot(masterId)
+        return buildAvailableSlots(masterId = masterId, service = service, snapshot = snapshot)
+    }
+
+    override suspend fun getScheduleSnapshot(masterId: String): ScheduleSnapshot {
+        val snap = firestore
+            .collection("master_public_schedule")
+            .document(masterId)
+            .get()
+            .await()
+
+        if (!snap.exists()) {
+            return ScheduleSnapshot(masterId = masterId)
+        }
+
+        val autoPublish = snap.getBoolean("autoPublishBusySlots") ?: false
+
+        val workDayStart = snap.getString("workDayStart")?.trim()?.takeIf { it.isNotBlank() } ?: "09:00"
+        val workDayEnd = snap.getString("workDayEnd")?.trim()?.takeIf { it.isNotBlank() } ?: "18:00"
+
+        val busySlots: List<BusySlotModel> = if (autoPublish) {
+            (snap.get("busySlots") as? List<Map<String, Any?>> ?: emptyList()).mapNotNull { item ->
+                val date = item["date"]?.toString()?.trim().orEmpty()
+                val startTime = item["startTime"]?.toString()?.trim().orEmpty()
+                val endTime = item["endTime"]?.toString()?.trim().orEmpty()
+                if (date.isBlank() || startTime.isBlank() || endTime.isBlank()) null
+                else BusySlotModel(date = date, startTime = startTime, endTime = endTime)
+            }
+        } else emptyList()
+
+        val weeklyBlockedIntervals: List<WeeklyBlockedInterval> =
+            (snap.get("weeklyBlockedIntervals") as? List<Map<String, Any?>> ?: emptyList())
+                .mapNotNull { item ->
+                    val dow = (item["dayOfWeek"] as? Number)?.toInt() ?: return@mapNotNull null
+                    val startTime = item["startTime"]?.toString()?.trim().orEmpty()
+                    val endTime = item["endTime"]?.toString()?.trim().orEmpty()
+                    if (startTime.isBlank() || endTime.isBlank()) null
+                    else WeeklyBlockedInterval(dayOfWeek = dow, startTime = startTime, endTime = endTime)
+                }
+
+        val dateOverrides: List<DateOverride> =
+            (snap.get("dateOverrides") as? List<Map<String, Any?>> ?: emptyList())
+                .mapNotNull { item ->
+                    val date = item["date"]?.toString()?.trim().orEmpty()
+                    val isWorking = item["isWorkingDay"] as? Boolean ?: return@mapNotNull null
+                    if (date.isBlank()) null
+                    else DateOverride(date = date, isWorkingDay = isWorking)
+                }
+
+        return ScheduleSnapshot(
             masterId = masterId,
-            service = service,
-            busySlots = busySlots
+            workDayStart = workDayStart,
+            workDayEnd = workDayEnd,
+            autoPublishBusySlots = autoPublish,
+            busySlots = busySlots,
+            weeklyBlockedIntervals = weeklyBlockedIntervals,
+            dateOverrides = dateOverrides
         )
     }
 
@@ -49,41 +105,10 @@ class FirebaseBookingRepository(
         return Result.success(Unit)
     }
 
-    private suspend fun loadBusySlots(masterId: String): List<BusySlot> {
-        val snap = firestore
-            .collection("master_public_schedule")
-            .document(masterId)
-            .get()
-            .await()
-
-        if (!snap.exists()) return emptyList()
-
-        val autoPublishBusySlots = snap.getBoolean("autoPublishBusySlots") ?: false
-        if (!autoPublishBusySlots) return emptyList()
-
-        val raw = snap.get("busySlots") as? List<Map<String, Any?>> ?: return emptyList()
-
-        return raw.mapNotNull { item ->
-            val date = item["date"]?.toString()?.trim().orEmpty()
-            val startTime = item["startTime"]?.toString()?.trim().orEmpty()
-            val endTime = item["endTime"]?.toString()?.trim().orEmpty()
-
-            if (date.isBlank() || startTime.isBlank() || endTime.isBlank()) {
-                null
-            } else {
-                BusySlot(
-                    date = date,
-                    startTime = startTime,
-                    endTime = endTime
-                )
-            }
-        }
-    }
-
     private fun buildAvailableSlots(
         masterId: String,
         service: MasterService,
-        busySlots: List<BusySlot>
+        snapshot: ScheduleSnapshot
     ): List<AvailableSlot> {
         val result = mutableListOf<AvailableSlot>()
         val today = LocalDate.now()
@@ -94,12 +119,15 @@ class FirebaseBookingRepository(
             val date = today.plusDays(dayOffset.toLong())
             val dateString = date.format(dateFormatter)
 
-            val dayBusy = busySlots
+            val dayBusy = snapshot.busySlots
                 .filter { it.date == dateString }
-                .sortedBy { parseTime(it.startTime) }
+                .sortedBy { parseTimeHm(it.startTime) }
 
-            var cursor = LocalTime.of(9, 0)
-            val endOfDay = LocalTime.of(18, 0)
+            val dayOfWeek = date.dayOfWeek.value
+            val weeklyBlocked = snapshot.weeklyBlockedIntervals.filter { it.dayOfWeek == dayOfWeek }
+
+            var cursor = parseTimeHm(snapshot.workDayStart)
+            val endOfDay = parseTimeHm(snapshot.workDayEnd)
             val duration = service.durationMinutes.toLong()
 
             while (true) {
@@ -107,12 +135,18 @@ class FirebaseBookingRepository(
                 if (slotEnd > endOfDay) break
 
                 val overlapsBusy = dayBusy.any { busy ->
-                    val busyStart = parseTime(busy.startTime)
-                    val busyEnd = parseTime(busy.endTime)
+                    val busyStart = parseTimeHm(busy.startTime)
+                    val busyEnd = parseTimeHm(busy.endTime)
                     cursor < busyEnd && busyStart < slotEnd
                 }
 
-                if (!overlapsBusy) {
+                val overlapsWeeklyBlock = weeklyBlocked.any { interval ->
+                    val blockStart = parseTimeHm(interval.startTime)
+                    val blockEnd = parseTimeHm(interval.endTime)
+                    cursor < blockEnd && blockStart < slotEnd
+                }
+
+                if (!overlapsBusy && !overlapsWeeklyBlock) {
                     val startDateTime = LocalDateTime.of(date, cursor)
                     val endDateTime = LocalDateTime.of(date, slotEnd)
 
@@ -132,13 +166,7 @@ class FirebaseBookingRepository(
         return result
     }
 
-    private fun parseTime(value: String): LocalTime {
+    private fun parseTimeHm(value: String): LocalTime {
         return LocalTime.parse(value.trim())
     }
-
-    private data class BusySlot(
-        val date: String,
-        val startTime: String,
-        val endTime: String
-    )
 }

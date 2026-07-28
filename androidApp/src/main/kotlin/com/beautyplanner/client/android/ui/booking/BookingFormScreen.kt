@@ -62,6 +62,20 @@ fun BookingFormScreen(
         service = mastersRepository.getServicesForMaster(masterId).find { it.id == serviceId }
     }
 
+    // Format the slot ID (ISO datetime like "2025-09-01T10:00:00") for display
+    val appointmentLabel = remember(slotId) {
+        runCatching {
+            val dt = java.time.LocalDateTime.parse(slotId)
+            val months = listOf(
+                "янв", "фев", "мар", "апр", "май", "июн",
+                "июл", "авг", "сен", "окт", "ноя", "дек"
+            )
+            val month = months.getOrElse(dt.monthValue - 1) { dt.monthValue.toString() }
+            val time = dt.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))
+            "${dt.dayOfMonth} $month ${dt.year}, $time"
+        }.getOrElse { slotId }
+    }
+
     Scaffold(
         topBar = {
             ClientTopBar(
@@ -85,6 +99,10 @@ fun BookingFormScreen(
                 Text("Услуга: ${it.titleRu}", style = MaterialTheme.typography.bodyMedium)
                 Text("Стоимость: ${it.price.toInt()} ${it.currency}", style = MaterialTheme.typography.bodySmall)
             }
+            Text(
+                text = "Дата и время: $appointmentLabel",
+                style = MaterialTheme.typography.bodyMedium
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 

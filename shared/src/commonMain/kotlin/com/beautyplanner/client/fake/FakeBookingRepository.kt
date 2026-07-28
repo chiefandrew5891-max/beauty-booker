@@ -3,6 +3,7 @@ package com.beautyplanner.client.fake
 import com.beautyplanner.client.domain.model.AvailableSlot
 import com.beautyplanner.client.domain.model.BookingRequest
 import com.beautyplanner.client.domain.model.BookingStatus
+import com.beautyplanner.client.domain.model.ScheduleSnapshot
 import com.beautyplanner.client.domain.repository.BookingRepository
 
 /**
@@ -20,6 +21,15 @@ class FakeBookingRepository : BookingRepository {
             AvailableSlot("slot-3", masterId, "2025-09-02T10:00:00", "2025-09-02T11:00:00"),
             AvailableSlot("slot-4", masterId, "2025-09-02T14:00:00", "2025-09-02T15:00:00"),
             AvailableSlot("slot-5", masterId, "2025-09-03T11:00:00", "2025-09-03T12:00:00")
+        )
+    }
+
+    override suspend fun getScheduleSnapshot(masterId: String): ScheduleSnapshot {
+        return ScheduleSnapshot(
+            masterId = masterId,
+            workDayStart = "09:00",
+            workDayEnd = "18:00",
+            autoPublishBusySlots = false
         )
     }
 
