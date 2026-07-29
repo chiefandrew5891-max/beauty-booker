@@ -12,10 +12,10 @@ import com.beautyplanner.client.domain.repository.BookingRepository
 import com.beautyplanner.client.domain.repository.MastersRepository
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
+import kotlin.math.max
 
 class FirebaseBookingRepository(
     private val firestore: FirebaseFirestore,
@@ -76,7 +76,9 @@ class FirebaseBookingRepository(
             emptyList()
         }
 
-        val rawWeeklyBlocked = snap.get("weeklyBlockedIntervals") as? List<Map<String, Any?>> ?: emptyList()
+        val rawWeeklyBlocked =
+            snap.get("weeklyBlockedIntervals") as? List<Map<String, Any?>> ?: emptyList()
+
         val weeklyBlockedIntervals = rawWeeklyBlocked.mapNotNull { item ->
             val dayOfWeek = when (val raw = item["dayOfWeek"]) {
                 is Number -> raw.toInt()
@@ -86,6 +88,7 @@ class FirebaseBookingRepository(
 
             val startTime = item["startTime"]?.toString()?.trim().orEmpty()
             val endTime = item["endTime"]?.toString()?.trim().orEmpty()
+
             val isActive = when (val raw = item["isActive"]) {
                 is Boolean -> raw
                 is String -> raw.equals("true", ignoreCase = true)
@@ -107,6 +110,7 @@ class FirebaseBookingRepository(
         }
 
         val rawOverrides = snap.get("dateOverrides") as? List<Map<String, Any?>> ?: emptyList()
+
         val dateOverrides = rawOverrides.mapNotNull { item ->
             val date = item["date"]?.toString()?.trim().orEmpty()
             if (date.isBlank()) return@mapNotNull null
@@ -150,20 +154,25 @@ class FirebaseBookingRepository(
                 .firstOrNull { it.id == request.serviceId }
 
             val serviceName = service?.titleRu.orEmpty()
-            val price = service?.price?.toIntOrNull()?.toString()
-                ?: service?.price?.toString().orEmpty()
+            val price = service?.price?.let { value ->
+                if (value % 1.0 == 0.0) {
+                    value.toInt().toString()
+                } else {
+                    value.toString()
+                }
+            }.orEmpty()
 
             val durationMinutes = service?.durationMinutes ?: 0
             val durationHours = if (durationMinutes > 0) {
-                kotlin.math.max(1, durationMinutes / 60)
+                max(1, durationMinutes / 60)
             } else {
                 1
             }
 
             val currency = service?.currency?.ifBlank { "EUR" } ?: "EUR"
 
-            // Пока используем то, что реально есть в BookingRequest.
-            // Позже можно улучшить и передавать имя/телефон клиента отдельно.
+            // Пока используем clientId как fallback.
+            // Позже лучше заменить на настоящее имя клиента из профиля.
             val clientName = request.clientId
             val phone = ""
 
@@ -226,17 +235,24 @@ class FirebaseBookingRepository(
         snapshot: MasterScheduleSnapshot
     ): List<AvailableSlot> {
         val result = mutableListOf<AvailableSlot>()
-        val today = LocalDate.now()
-        val dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE
-        val dateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
 
-        val workStart = parseTime(snapshot.workStartTime)
-        val workEnd = parseTime(snapshot.workEndTime)
-        val duration = service.durationMinutes.toLong()
+        val today = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+
+        val workStart = parseHmToMinutes(snapshot.workStartTime) ?: return emptyList()
+        val workEnd = parseHmToMinutes(snapshot.workEndTime) ?: return emptyList()
+        val duration = service.durationMinutes
 
         for (dayOffset in 0 until 31) {
-            val date = today.plusDays(dayOffset.toLong())
-            val dateString = date.format(dateFormatter)
+            val dateCal = (today.clone() as Calendar).apply {
+                add(Calendar.DAY_OF_MONTH, dayOffset)
+            }
+
+            val dateString = formatDate(dateCal)
 
             val override = snapshot.dateOverrides.firstOrNull { it.date == dateString }
             val dayBusy = snapshot.busySlots.filter { it.date == dateString }
@@ -244,52 +260,84 @@ class FirebaseBookingRepository(
             val blockedIntervals = if (override?.unblockAll == true) {
                 emptyList()
             } else {
+                val isoDay = isoDayOfWeek(dateCal)
                 snapshot.weeklyBlockedIntervals.filter {
-                    it.isActive && it.dayOfWeek == date.dayOfWeek.value
+                    it.isActive && it.dayOfWeek == isoDay
                 }
             }
 
             var cursor = workStart
-            while (true) {
-                val slotEnd = cursor.plusMinutes(duration)
-                if (slotEnd > workEnd) break
+            while (cursor + duration <= workEnd) {
+                val slotEnd = cursor + duration
 
                 val overlapsBusy = dayBusy.any { busy ->
-                    val busyStart = parseTime(busy.startTime)
-                    val busyEnd = parseTime(busy.endTime)
+                    val busyStart = parseHmToMinutes(busy.startTime) ?: return@any false
+                    val busyEnd = parseHmToMinutes(busy.endTime) ?: return@any false
                     cursor < busyEnd && busyStart < slotEnd
                 }
 
                 val overlapsBlocked = blockedIntervals.any { blocked ->
-                    val blockedStart = parseTime(blocked.startTime)
-                    val blockedEnd = parseTime(blocked.endTime)
+                    val blockedStart = parseHmToMinutes(blocked.startTime) ?: return@any false
+                    val blockedEnd = parseHmToMinutes(blocked.endTime) ?: return@any false
                     cursor < blockedEnd && blockedStart < slotEnd
                 }
 
                 if (!overlapsBusy && !overlapsBlocked) {
-                    val startDateTime = LocalDateTime.of(date, cursor)
-                    val endDateTime = LocalDateTime.of(date, slotEnd)
+                    val startDateTime = "${dateString}T${minutesToHm(cursor)}:00"
+                    val endDateTime = "${dateString}T${minutesToHm(slotEnd)}:00"
 
                     result += AvailableSlot(
-                        id = "${masterId}_${service.id}_${dateString}_${cursor}",
+                        id = "${masterId}_${service.id}_${dateString}_${minutesToHm(cursor)}",
                         masterId = masterId,
-                        startDateTime = startDateTime.format(dateTimeFormatter),
-                        endDateTime = endDateTime.format(dateTimeFormatter),
+                        startDateTime = startDateTime,
+                        endDateTime = endDateTime,
                         isBooked = false
                     )
                 }
 
-                cursor = cursor.plusMinutes(30)
+                cursor += 30
             }
         }
 
         return result
     }
 
-    private fun parseTime(value: String): LocalTime {
-        return runCatching { LocalTime.parse(value) }
-            .getOrDefault(LocalTime.of(8, 0))
+    private fun parseHmToMinutes(value: String): Int? {
+        val parts = value.split(":")
+        if (parts.size != 2) return null
+
+        val hour = parts[0].toIntOrNull() ?: return null
+        val minute = parts[1].toIntOrNull() ?: return null
+
+        if (hour !in 0..23 || minute !in 0..59) return null
+
+        return hour * 60 + minute
     }
+
+    private fun minutesToHm(totalMinutes: Int): String {
+        val normalized = totalMinutes.coerceAtLeast(0)
+        val hour = normalized / 60
+        val minute = normalized % 60
+        return "${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}"
+    }
+
+    private fun formatDate(calendar: Calendar): String {
+        return SimpleDateFormat("yyyy-MM-dd", Locale.US).format(calendar.time)
+    }
+
+    private fun isoDayOfWeek(calendar: Calendar): Int {
+        return when (calendar.get(Calendar.DAY_OF_WEEK)) {
+            Calendar.MONDAY -> 1
+            Calendar.TUESDAY -> 2
+            Calendar.WEDNESDAY -> 3
+            Calendar.THURSDAY -> 4
+            Calendar.FRIDAY -> 5
+            Calendar.SATURDAY -> 6
+            Calendar.SUNDAY -> 7
+            else -> 1
+        }
+    }
+
     private fun buildAppointmentPayloadJson(
         id: String,
         dateString: String,
@@ -327,7 +375,7 @@ class FirebaseBookingRepository(
           "currency": ${jsonString(currency)},
           "bookingSource": ${jsonString(bookingSource)}
         }
-    """.trimIndent()
+        """.trimIndent()
     }
 
     private fun jsonString(value: String): String {
