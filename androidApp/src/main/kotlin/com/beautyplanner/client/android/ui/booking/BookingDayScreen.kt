@@ -33,9 +33,9 @@ import com.beautyplanner.client.domain.model.MasterScheduleSnapshot
 import com.beautyplanner.client.domain.model.MasterService
 import com.beautyplanner.client.domain.repository.BookingRepository
 import com.beautyplanner.client.domain.repository.MastersRepository
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,7 +54,10 @@ fun BookingDayScreen(
     var busyTimes by remember { mutableStateOf<List<String>>(emptyList()) }
 
     LaunchedEffect(masterId, serviceId, date) {
-        val loadedService = mastersRepository.getServicesForMaster(masterId).firstOrNull { it.id == serviceId }
+        val loadedService = mastersRepository
+            .getServicesForMaster(masterId)
+            .firstOrNull { it.id == serviceId }
+
         val loadedSnapshot = bookingRepository.getScheduleSnapshot(masterId)
 
         service = loadedService
@@ -66,6 +69,7 @@ fun BookingDayScreen(
                 durationMinutes = loadedService.durationMinutes,
                 snapshot = loadedSnapshot
             )
+
             busyTimes = loadedSnapshot.busySlots
                 .filter { it.date == date }
                 .map { "${it.startTime} - ${it.endTime}" }
@@ -88,7 +92,7 @@ fun BookingDayScreen(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = date,
+                    text = formatDateRu(date),
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                 )
 
@@ -133,7 +137,9 @@ fun BookingDayScreen(
                         }
                     }
 
-                    item { Spacer(modifier = Modifier.height(8.dp)) }
+                    item {
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
                 }
 
                 item {
@@ -155,8 +161,7 @@ fun BookingDayScreen(
                         TimeItem(
                             startTime = startTime,
                             onClick = {
-                                val slotId = buildSlotId(masterId, serviceId, date, startTime)
-                                onTimeSelected(slotId)
+                                onTimeSelected("${date}T${startTime}:00")
                             }
                         )
                     }
@@ -198,59 +203,110 @@ private fun buildAvailableTimesForDay(
     snapshot: MasterScheduleSnapshot
 ): List<String> {
     val result = mutableListOf<String>()
-    val localDate = LocalDate.parse(date)
-    val workStart = java.time.LocalTime.parse(snapshot.workStartTime)
-    val workEnd = java.time.LocalTime.parse(snapshot.workEndTime)
-    val duration = durationMinutes.toLong()
+    val workStart = parseHmToMinutes(snapshot.workStartTime) ?: return emptyList()
+    val workEnd = parseHmToMinutes(snapshot.workEndTime) ?: return emptyList()
 
     val override = snapshot.dateOverrides.firstOrNull { it.date == date }
     val blockedIntervals = if (override?.unblockAll == true) {
         emptyList()
     } else {
+        val dayOfWeek = isoDayNumberFromDate(date)
         snapshot.weeklyBlockedIntervals.filter {
-            it.isActive && it.dayOfWeek == localDate.dayOfWeek.value
+            it.isActive && it.dayOfWeek == dayOfWeek
         }
     }
 
     val busy = snapshot.busySlots.filter { it.date == date }
 
     var cursor = workStart
-    while (true) {
-        val slotEnd = cursor.plusMinutes(duration)
-        if (slotEnd > workEnd) break
+    while (cursor + durationMinutes <= workEnd) {
+        val slotEnd = cursor + durationMinutes
 
         val overlapsBusy = busy.any {
-            val start = java.time.LocalTime.parse(it.startTime)
-            val end = java.time.LocalTime.parse(it.endTime)
+            val start = parseHmToMinutes(it.startTime) ?: return@any false
+            val end = parseHmToMinutes(it.endTime) ?: return@any false
             cursor < end && start < slotEnd
         }
 
         val overlapsBlocked = blockedIntervals.any {
-            val start = java.time.LocalTime.parse(it.startTime)
-            val end = java.time.LocalTime.parse(it.endTime)
+            val start = parseHmToMinutes(it.startTime) ?: return@any false
+            val end = parseHmToMinutes(it.endTime) ?: return@any false
             cursor < end && start < slotEnd
         }
 
         if (!overlapsBusy && !overlapsBlocked) {
-            result += cursor.toString()
+            result += minutesToHm(cursor)
         }
 
-        cursor = cursor.plusMinutes(30)
+        cursor += 30
     }
 
     return result
 }
 
-private fun buildSlotId(
-    masterId: String,
-    serviceId: String,
-    date: String,
-    startTime: String
-): String {
-    val dateTime = LocalDateTime.of(
-        LocalDate.parse(date),
-        java.time.LocalTime.parse(startTime)
-    )
+private fun parseHmToMinutes(value: String): Int? {
+    val parts = value.split(":")
+    if (parts.size != 2) return null
 
-    return "${masterId}_${serviceId}_${dateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)}"
+    val hour = parts[0].toIntOrNull() ?: return null
+    val minute = parts[1].toIntOrNull() ?: return null
+
+    return hour * 60 + minute
+}
+
+private fun minutesToHm(minutes: Int): String {
+    val h = minutes / 60
+    val m = minutes % 60
+    return "${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}"
+}
+
+private fun isoDayNumberFromDate(date: String): Int {
+    val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+    val parsed = formatter.parse(date) ?: return 1
+
+    val cal = Calendar.getInstance().apply {
+        time = parsed
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+    }
+
+    return when (cal.get(Calendar.DAY_OF_WEEK)) {
+        Calendar.MONDAY -> 1
+        Calendar.TUESDAY -> 2
+        Calendar.WEDNESDAY -> 3
+        Calendar.THURSDAY -> 4
+        Calendar.FRIDAY -> 5
+        Calendar.SATURDAY -> 6
+        Calendar.SUNDAY -> 7
+        else -> 1
+    }
+}
+
+private fun formatDateRu(date: String): String {
+    val parser = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+    val parsed = parser.parse(date) ?: return date
+
+    val cal = Calendar.getInstance().apply { time = parsed }
+
+    val day = cal.get(Calendar.DAY_OF_MONTH)
+    val year = cal.get(Calendar.YEAR)
+    val month = when (cal.get(Calendar.MONTH)) {
+        0 -> "января"
+        1 -> "февраля"
+        2 -> "марта"
+        3 -> "апреля"
+        4 -> "мая"
+        5 -> "июня"
+        6 -> "июля"
+        7 -> "августа"
+        8 -> "сентября"
+        9 -> "октября"
+        10 -> "ноября"
+        11 -> "декабря"
+        else -> ""
+    }
+
+    return "$day $month $year"
 }

@@ -10,6 +10,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import java.net.URLDecoder
+import java.net.URLEncoder
 import com.beautyplanner.client.android.ui.auth.AuthScreen
 import com.beautyplanner.client.android.ui.auth.CompleteProfileScreen
 import com.beautyplanner.client.android.ui.booking.BookingCalendarScreen
@@ -37,21 +39,34 @@ object Routes {
     const val SERVICES = "services/{masterId}"
     const val BOOKING_CALENDAR = "booking_calendar/{masterId}/{serviceId}"
     const val BOOKING_DAY = "booking_day/{masterId}/{serviceId}/{date}"
-    const val BOOKING_FORM = "booking_form/{masterId}/{serviceId}/{slotId}"
+    const val BOOKING_FORM = "booking_form/{masterId}/{serviceId}/{dateTime}"
     const val BOOKING_CONFIRMATION = "booking_confirmation/{bookingId}"
     const val REVIEWS = "reviews/{masterId}"
     const val LEAVE_REVIEW = "leave_review/{masterId}/{appointmentId}"
 
     fun masterProfile(masterId: String) = "master_profile/$masterId"
+
     fun services(masterId: String) = "services/$masterId"
+
     fun bookingCalendar(masterId: String, serviceId: String) =
         "booking_calendar/$masterId/$serviceId"
+
     fun bookingDay(masterId: String, serviceId: String, date: String) =
         "booking_day/$masterId/$serviceId/$date"
-    fun bookingForm(masterId: String, serviceId: String, slotId: String) =
-        "booking_form/$masterId/$serviceId/$slotId"
+
+    fun bookingForm(
+        masterId: String,
+        serviceId: String,
+        dateTime: String
+    ): String {
+        val encoded = URLEncoder.encode(dateTime, "UTF-8")
+        return "booking_form/$masterId/$serviceId/$encoded"
+    }
+
     fun bookingConfirmation(bookingId: String) = "booking_confirmation/$bookingId"
+
     fun reviews(masterId: String) = "reviews/$masterId"
+
     fun leaveReview(masterId: String, appointmentId: String) =
         "leave_review/$masterId/$appointmentId"
 }
@@ -125,7 +140,9 @@ fun AppNavigation(
                 masterId = masterId,
                 client = currentClient,
                 mastersRepository = mastersRepository,
-                onServicesClick = { navController.navigate(Routes.services(masterId)) },
+                onServiceSelected = { serviceId ->
+                    navController.navigate(Routes.bookingCalendar(masterId, serviceId))
+                },
                 onReviewsClick = { navController.navigate(Routes.reviews(masterId)) },
                 onBackClick = { navController.popBackStack() }
             )
@@ -187,8 +204,8 @@ fun AppNavigation(
                 date = date,
                 mastersRepository = mastersRepository,
                 bookingRepository = bookingRepository,
-                onTimeSelected = { slotId ->
-                    navController.navigate(Routes.bookingForm(masterId, serviceId, slotId))
+                onTimeSelected = { dateTime ->
+                    navController.navigate(Routes.bookingForm(masterId, serviceId, dateTime))
                 },
                 onBackClick = { navController.popBackStack() }
             )
@@ -199,16 +216,18 @@ fun AppNavigation(
             arguments = listOf(
                 navArgument("masterId") { type = NavType.StringType },
                 navArgument("serviceId") { type = NavType.StringType },
-                navArgument("slotId") { type = NavType.StringType }
+                navArgument("dateTime") { type = NavType.StringType }
             )
         ) { backStack ->
             val masterId = backStack.arguments?.getString("masterId") ?: return@composable
             val serviceId = backStack.arguments?.getString("serviceId") ?: return@composable
-            val slotId = backStack.arguments?.getString("slotId") ?: return@composable
+            val encodedDateTime = backStack.arguments?.getString("dateTime") ?: return@composable
+            val appointmentDateTime = URLDecoder.decode(encodedDateTime, "UTF-8")
+
             BookingFormScreen(
                 masterId = masterId,
                 serviceId = serviceId,
-                slotId = slotId,
+                appointmentDateTime = appointmentDateTime,
                 client = currentClient,
                 mastersRepository = mastersRepository,
                 bookingRepository = bookingRepository,

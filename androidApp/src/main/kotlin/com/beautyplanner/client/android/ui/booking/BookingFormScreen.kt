@@ -38,7 +38,7 @@ import kotlinx.coroutines.launch
 fun BookingFormScreen(
     masterId: String,
     serviceId: String,
-    slotId: String,
+    appointmentDateTime: String,
     client: ClientProfile?,
     mastersRepository: MastersRepository,
     bookingRepository: BookingRepository,
@@ -46,15 +46,12 @@ fun BookingFormScreen(
     onBackClick: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
+
     var master by remember { mutableStateOf<MasterProfile?>(null) }
     var service by remember { mutableStateOf<MasterService?>(null) }
     var note by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-
-    val appointmentDateTime = remember(slotId) {
-        slotId.substringAfter("${masterId}_${serviceId}_", "")
-    }
 
     LaunchedEffect(masterId, serviceId) {
         master = mastersRepository.getMasterById(masterId)
@@ -78,16 +75,27 @@ fun BookingFormScreen(
                 .padding(16.dp)
         ) {
             master?.let {
-                Text("Мастер: ${it.displayName}", style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    text = "Мастер: ${it.displayName}",
+                    style = MaterialTheme.typography.bodyLarge
+                )
             }
+
             service?.let {
-                Text("Услуга: ${it.titleRu}", style = MaterialTheme.typography.bodyMedium)
-                Text("Стоимость: ${it.price.toInt()} ${it.currency}", style = MaterialTheme.typography.bodySmall)
+                Text(
+                    text = "Услуга: ${it.titleRu}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = "Стоимость: ${it.price.toInt()} ${it.currency}",
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
+
             if (appointmentDateTime.isNotBlank()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    "Дата и время: ${appointmentDateTime.replace("T", " ")}",
+                    text = "Дата и время: ${appointmentDateTime.replace("T", " ")}",
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -104,9 +112,9 @@ fun BookingFormScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            if (errorMessage != null) {
+            errorMessage?.let {
                 Text(
-                    text = errorMessage!!,
+                    text = it,
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall
                 )
@@ -117,19 +125,22 @@ fun BookingFormScreen(
                 onClick = {
                     val clientId = client?.id ?: return@Button
                     isLoading = true
+
                     scope.launch {
                         val request = BookingRequest(
                             id = "booking-${System.currentTimeMillis()}",
                             clientId = clientId,
                             masterId = masterId,
                             serviceId = serviceId,
-                            slotId = slotId,
+                            slotId = "slot_$appointmentDateTime",
                             appointmentDateTime = appointmentDateTime,
                             noteFromClient = note.trim()
                         )
+
                         bookingRepository.submitBooking(request)
                             .onSuccess { onBookingConfirmed(it.id) }
                             .onFailure { errorMessage = Strings.ERROR_GENERIC }
+
                         isLoading = false
                     }
                 },
