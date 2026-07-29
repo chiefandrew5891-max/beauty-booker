@@ -25,6 +25,7 @@ interface AuthRepository {
     suspend fun signInWithGoogle(): Result<ClientProfile>
     suspend fun signInWithApple(): Result<ClientProfile>
     suspend fun signInWithEmail(email: String, password: String): Result<ClientProfile>
+    suspend fun registerWithEmail(email: String, password: String): Result<ClientProfile>
     fun continueAsGuest(): ClientProfile
     fun signOut()
 }

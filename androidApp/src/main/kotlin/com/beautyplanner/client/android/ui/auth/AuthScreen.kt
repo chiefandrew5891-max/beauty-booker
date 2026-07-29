@@ -105,13 +105,12 @@ fun AuthScreen(
             AuthButton(
                 text = Strings.AUTH_SIGN_IN_EMAIL,
                 onClick = {
-                    // TODO: navigate to EmailSignInScreen
                     isLoading = true
                     errorMessage = null
                     scope.launch {
                         authRepository.signInWithEmail("demo@example.com", "password")
                             .onSuccess { onSignedIn(it) }
-                            .onFailure { errorMessage = Strings.ERROR_GENERIC }
+                            .onFailure { errorMessage = it.message ?: Strings.ERROR_GENERIC }
                         isLoading = false
                     }
                 },
