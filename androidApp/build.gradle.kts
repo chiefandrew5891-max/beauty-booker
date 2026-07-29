@@ -52,5 +52,6 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.9.0"))
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-auth:22.3.1")
+
     implementation("androidx.compose.material:material-icons-extended")
 }
