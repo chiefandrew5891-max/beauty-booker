@@ -12,9 +12,9 @@ import com.beautyplanner.client.android.data.FirebaseMastersRepository
 import com.beautyplanner.client.android.navigation.AppNavigation
 import com.beautyplanner.client.android.ui.theme.AppThemeMode
 import com.beautyplanner.client.android.ui.theme.BeautyPlannerTheme
-import com.beautyplanner.client.fake.FakeAuthRepository
-import com.beautyplanner.client.fake.FakeClientProfileRepository
-import com.beautyplanner.client.fake.FakeReviewsRepository
+import com.beautyplanner.client.fake.AuthRepository
+import com.beautyplanner.client.fake.ClientProfileRepository
+import com.beautyplanner.client.fake.ReviewsRepository
 import com.google.firebase.firestore.FirebaseFirestore
 
 class MainActivity : ComponentActivity() {
@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
 
         val firestore = FirebaseFirestore.getInstance()
 
-        val authRepository = FakeAuthRepository()
+        val authRepository = AuthRepository()
         val mastersRepository = FirebaseMastersRepository(
             firestore = firestore
         )
@@ -31,8 +31,8 @@ class MainActivity : ComponentActivity() {
             firestore = firestore,
             mastersRepository = mastersRepository
         )
-        val reviewsRepository = FakeReviewsRepository()
-        val clientProfileRepository = FakeClientProfileRepository()
+        val reviewsRepository = ReviewsRepository()
+        val clientProfileRepository = ClientProfileRepository()
 
         setContent {
             var themeMode by rememberSaveable { mutableStateOf(AppThemeMode.LIGHT) }

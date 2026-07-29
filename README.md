@@ -92,19 +92,19 @@ Auth Screen
 
 ## Что сейчас фейковое / заглушки
 
-Все реализации репозиториев (`Fake*`) содержат данные в памяти:
+Все текущие реализации репозиториев содержат данные в памяти:
 
-- `FakeAuthRepository` — имитирует вход через Google/Apple/Email, возвращает фиктивный профиль.
-- `FakeMastersRepository` — 5 заранее заданных мастеров.
-- `FakeBookingRepository` — 5 слотов, запись хранится в памяти.
-- `FakeReviewsRepository` — несколько примеров отзывов + одно напоминание.
-- `FakeClientProfileRepository` — хранит профили в памяти.
+- `AuthRepository` — имитирует вход через Google/Apple/Email, возвращает фиктивный профиль.
+- `MastersRepository` — 5 заранее заданных мастеров.
+- `BookingRepository` — 5 слотов, запись хранится в памяти.
+- `ReviewsRepository` — несколько примеров отзывов + одно напоминание.
+- `ClientProfileRepository` — хранит профили в памяти.
 
 ### Что нужно заменить позже
 
-- `FakeAuthRepository` → **Firebase Auth** (Google Sign-In, Apple Sign-In, Email/Password).
-- `FakeMastersRepository`, `FakeBookingRepository`, `FakeReviewsRepository` → **реальный backend API**.
-- `FakeClientProfileRepository` → **Firebase Firestore** или backend profile storage.
+- `AuthRepository` → **Firebase Auth** (Google Sign-In, Apple Sign-In, Email/Password).
+- `MastersRepository`, `BookingRepository`, `ReviewsRepository` → **реальный backend API**.
+- `ClientProfileRepository` → **Firebase Firestore** или backend profile storage.
 - iOS UI → полноценный SwiftUI-интерфейс, зеркалирующий Android-флоу.
 
 ---
@@ -117,7 +117,7 @@ beauty-planner-client/
 │   └── src/commonMain/kotlin/com/beautyplanner/client/
 │       ├── domain/model/     # MasterProfile, BookingRequest, MasterReview, etc.
 │       ├── domain/repository/# AuthRepository, MastersRepository, etc.
-│       ├── fake/             # FakeAuthRepository, FakeMastersRepository, etc.
+│       ├── fake/             # AuthRepository, MastersRepository, etc.
 │       └── strings/          # Strings.kt — все UI-строки на русском
 ├── androidApp/               # Android-приложение (Jetpack Compose)
 │   └── src/main/kotlin/com/beautyplanner/client/android/

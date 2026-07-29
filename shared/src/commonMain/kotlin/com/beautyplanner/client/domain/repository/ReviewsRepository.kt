@@ -13,7 +13,7 @@ import com.beautyplanner.client.domain.model.ReviewSubmission
  * - Guest clients must NOT submit reviews.
  * - Masters may hide reviews but not delete or alter ratings.
  *
- * Fake implementation: [com.beautyplanner.client.fake.FakeReviewsRepository]
+ * Current implementation: [com.beautyplanner.client.fake.ReviewsRepository]
  * TODO: Replace with real backend API calls.
  */
 interface ReviewsRepository {

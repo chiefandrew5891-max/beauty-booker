@@ -7,7 +7,7 @@ import com.beautyplanner.client.domain.model.MasterService
 /**
  * Data contract for reading master profiles, services, and categories.
  *
- * Fake implementation: [com.beautyplanner.client.fake.FakeMastersRepository]
+ * Current implementation: [com.beautyplanner.client.fake.MastersRepository]
  * TODO: Replace with real backend API calls.
  */
 interface MastersRepository {

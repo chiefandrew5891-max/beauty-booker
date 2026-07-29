@@ -17,7 +17,7 @@ sealed class AuthState {
 /**
  * Abstraction over the authentication provider (Firebase Auth, etc.).
  *
- * Fake implementation: [com.beautyplanner.client.fake.FakeAuthRepository]
+ * Current implementation: [com.beautyplanner.client.fake.AuthRepository]
  * TODO: Replace with Firebase/Auth provider integration.
  */
 interface AuthRepository {

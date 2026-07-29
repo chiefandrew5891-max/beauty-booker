@@ -5,7 +5,7 @@ import com.beautyplanner.client.domain.model.ClientProfile
 /**
  * Manages the current client's profile (nickname, avatar, etc.).
  *
- * Fake implementation: [com.beautyplanner.client.fake.FakeClientProfileRepository]
+ * Current implementation: [com.beautyplanner.client.fake.ClientProfileRepository]
  * TODO: Replace with real backend/Firebase profile storage.
  */
 interface ClientProfileRepository {
