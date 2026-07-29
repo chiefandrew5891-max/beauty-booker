@@ -134,7 +134,82 @@ class FirebaseBookingRepository(
     }
 
     override suspend fun submitBooking(request: BookingRequest): Result<BookingRequest> {
-        return Result.success(request.copy(status = BookingStatus.PENDING))
+        return runCatching {
+            val appointmentId = request.id.ifBlank {
+                "appt_${System.currentTimeMillis()}"
+            }
+
+            val appointmentDateTime = request.appointmentDateTime.trim()
+            val dateString = appointmentDateTime.substringBefore("T")
+            val time = appointmentDateTime.substringAfter("T").substringBeforeLast(":")
+
+            val nowMillis = System.currentTimeMillis()
+
+            val service = mastersRepository
+                .getServicesForMaster(request.masterId)
+                .firstOrNull { it.id == request.serviceId }
+
+            val serviceName = service?.titleRu.orEmpty()
+            val price = service?.price?.toIntOrNull()?.toString()
+                ?: service?.price?.toString().orEmpty()
+
+            val durationMinutes = service?.durationMinutes ?: 0
+            val durationHours = if (durationMinutes > 0) {
+                kotlin.math.max(1, durationMinutes / 60)
+            } else {
+                1
+            }
+
+            val currency = service?.currency?.ifBlank { "EUR" } ?: "EUR"
+
+            // Пока используем то, что реально есть в BookingRequest.
+            // Позже можно улучшить и передавать имя/телефон клиента отдельно.
+            val clientName = request.clientId
+            val phone = ""
+
+            val payloadJson = buildAppointmentPayloadJson(
+                id = appointmentId,
+                dateString = dateString,
+                time = time,
+                clientName = clientName,
+                phone = phone,
+                serviceName = serviceName,
+                price = price,
+                durationMinutes = durationMinutes,
+                durationHours = durationHours,
+                notes = request.noteFromClient,
+                paymentDeferred = false,
+                paymentStatus = "",
+                updatedAtMillis = nowMillis,
+                isDeleted = false,
+                currency = currency,
+                bookingSource = "online"
+            )
+
+            val docData = mapOf(
+                "id" to appointmentId,
+                "dateString" to dateString,
+                "time" to time,
+                "updatedAtMillis" to nowMillis,
+                "isDeleted" to false,
+                "paymentStatus" to "",
+                "bookingSource" to "online",
+                "payload" to payloadJson
+            )
+
+            firestore
+                .collection("users")
+                .document(request.masterId)
+                .collection("appointments")
+                .document(appointmentId)
+                .set(docData)
+                .await()
+
+            request.copy(
+                id = appointmentId,
+                status = BookingStatus.PENDING
+            )
+        }
     }
 
     override suspend fun getBookingsForClient(clientId: String): List<BookingRequest> {
@@ -214,5 +289,54 @@ class FirebaseBookingRepository(
     private fun parseTime(value: String): LocalTime {
         return runCatching { LocalTime.parse(value) }
             .getOrDefault(LocalTime.of(8, 0))
+    }
+    private fun buildAppointmentPayloadJson(
+        id: String,
+        dateString: String,
+        time: String,
+        clientName: String,
+        phone: String,
+        serviceName: String,
+        price: String,
+        durationMinutes: Int,
+        durationHours: Int,
+        notes: String,
+        paymentDeferred: Boolean,
+        paymentStatus: String,
+        updatedAtMillis: Long,
+        isDeleted: Boolean,
+        currency: String,
+        bookingSource: String
+    ): String {
+        return """
+        {
+          "id": ${jsonString(id)},
+          "dateString": ${jsonString(dateString)},
+          "time": ${jsonString(time)},
+          "clientName": ${jsonString(clientName)},
+          "phone": ${jsonString(phone)},
+          "serviceName": ${jsonString(serviceName)},
+          "price": ${jsonString(price)},
+          "durationMinutes": $durationMinutes,
+          "durationHours": $durationHours,
+          "notes": ${jsonString(notes)},
+          "paymentDeferred": $paymentDeferred,
+          "paymentStatus": ${jsonString(paymentStatus)},
+          "updatedAtMillis": $updatedAtMillis,
+          "isDeleted": $isDeleted,
+          "currency": ${jsonString(currency)},
+          "bookingSource": ${jsonString(bookingSource)}
+        }
+    """.trimIndent()
+    }
+
+    private fun jsonString(value: String): String {
+        val escaped = value
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t")
+        return "\"$escaped\""
     }
 }
