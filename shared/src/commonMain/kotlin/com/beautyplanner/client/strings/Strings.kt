@@ -23,6 +23,15 @@ object Strings {
     const val AUTH_SIGN_IN_EMAIL = "Продолжить по email"
     const val AUTH_GUEST = "Продолжить как гость"
 
+    const val AUTH_EMAIL_LABEL = "Email"
+    const val AUTH_PASSWORD_LABEL = "Пароль"
+    const val AUTH_EMAIL_SIGN_IN = "Войти по email"
+    const val AUTH_EMAIL_REGISTER = "Зарегистрироваться"
+    const val AUTH_SWITCH_TO_REGISTER = "Нет аккаунта? Зарегистрироваться"
+    const val AUTH_SWITCH_TO_SIGN_IN = "Уже есть аккаунт? Войти"
+    const val ERROR_EMPTY_EMAIL = "Введите email"
+    const val ERROR_EMPTY_PASSWORD = "Введите пароль"
+
     // ── Complete Profile screen ──────────────────────────────────────────────
     const val COMPLETE_PROFILE_TITLE = "Придумайте никнейм"
     const val COMPLETE_PROFILE_SUBTITLE =
