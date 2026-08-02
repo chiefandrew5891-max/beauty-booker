@@ -173,7 +173,7 @@ class FirebaseBookingRepository(
 
             // Пока используем clientId как fallback.
             // Позже лучше заменить на настоящее имя клиента из профиля.
-            val clientName = request.clientId
+            val clientName = request.clientNickname.ifBlank { request.clientId }
             val phone = ""
 
             val payloadJson = buildAppointmentPayloadJson(

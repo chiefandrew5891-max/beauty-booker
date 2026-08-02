@@ -18,6 +18,7 @@ enum class BookingStatus {
 data class BookingRequest(
     val id: String,
     val clientId: String,
+    val clientNickname: String = "",
     val masterId: String,
     val serviceId: String,
     val slotId: String,

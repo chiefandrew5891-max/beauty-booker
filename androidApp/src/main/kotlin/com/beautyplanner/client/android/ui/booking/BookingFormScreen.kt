@@ -130,6 +130,7 @@ fun BookingFormScreen(
                         val request = BookingRequest(
                             id = "booking-${System.currentTimeMillis()}",
                             clientId = clientId,
+                            clientNickname = client?.nickname.orEmpty(),
                             masterId = masterId,
                             serviceId = serviceId,
                             slotId = "slot_$appointmentDateTime",

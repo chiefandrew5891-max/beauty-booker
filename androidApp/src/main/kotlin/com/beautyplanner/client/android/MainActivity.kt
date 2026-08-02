@@ -10,12 +10,14 @@ import androidx.compose.runtime.setValue
 import com.beautyplanner.client.android.data.FirebaseBookerProfileRepository
 import com.beautyplanner.client.android.data.FirebaseBookingRepository
 import com.beautyplanner.client.android.data.FirebaseMastersRepository
+import com.beautyplanner.client.fake.ClientProfileRepository
+import com.beautyplanner.client.android.data.BookerBackend
 import com.beautyplanner.client.android.navigation.AppNavigation
 import com.beautyplanner.client.android.ui.theme.AppThemeMode
 import com.beautyplanner.client.android.ui.theme.BeautyPlannerTheme
 import com.beautyplanner.client.domain.model.ClientProfile
 import com.beautyplanner.client.fake.AuthRepository
-import com.beautyplanner.client.fake.ClientProfileRepository
+import com.beautyplanner.client.android.data.FirestoreClientProfileRepository
 import com.beautyplanner.client.fake.FirebaseAuthRepositoryDelegate
 import com.beautyplanner.client.fake.ReviewsRepository
 import com.google.firebase.auth.FirebaseAuth
@@ -28,6 +30,9 @@ class MainActivity : ComponentActivity() {
 
         val firestore = FirebaseFirestore.getInstance()
         val firebaseAuth = FirebaseAuth.getInstance()
+        val functions = com.google.firebase.ktx.Firebase.functions
+
+        val bookerBackend = BookerBackend(functions)
         val profileRepository = FirebaseBookerProfileRepository(firestore)
 
         val authRepository = AuthRepository(
@@ -38,10 +43,13 @@ class MainActivity : ComponentActivity() {
                         val user = authResult.user
                             ?: return Result.failure(IllegalStateException("Firebase user is null after sign-in"))
 
-                        profileRepository.getOrCreateProfile(
-                            uid = user.uid,
-                            email = user.email
-                        )
+                        bookerBackend.bootstrapBookerUser(
+                            email = user.email,
+                            displayName = user.displayName,
+                            authProvider = "email"
+                        ).getOrThrow()
+
+                        bookerBackend.getBookerProfile()
                     } catch (e: Exception) {
                         Result.failure(e)
                     }
@@ -53,10 +61,13 @@ class MainActivity : ComponentActivity() {
                         val user = authResult.user
                             ?: return Result.failure(IllegalStateException("Firebase user is null after registration"))
 
-                        profileRepository.getOrCreateProfile(
-                            uid = user.uid,
-                            email = user.email
-                        )
+                        bookerBackend.bootstrapBookerUser(
+                            email = user.email,
+                            displayName = user.displayName,
+                            authProvider = "email"
+                        ).getOrThrow()
+
+                        bookerBackend.getBookerProfile()
                     } catch (e: Exception) {
                         Result.failure(e)
                     }
@@ -76,7 +87,7 @@ class MainActivity : ComponentActivity() {
             mastersRepository = mastersRepository
         )
         val reviewsRepository = ReviewsRepository()
-        val clientProfileRepository = ClientProfileRepository()
+        val clientProfileRepository = FirestoreClientProfileRepository(firestore)
 
         setContent {
             var themeMode by rememberSaveable { mutableStateOf(AppThemeMode.LIGHT) }
