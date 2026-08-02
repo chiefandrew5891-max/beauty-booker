@@ -22,7 +22,7 @@ kotlin {
             implementation(libs.datetime)
         }
         androidMain.dependencies {
-            implementation(platform(libs.compose.bom))
+            implementation(platform("androidx.compose:compose-bom:2024.06.00"))
             implementation(libs.compose.ui)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
@@ -30,7 +30,7 @@ kotlin {
             implementation(libs.coil.compose)
             implementation(libs.compose.ui.tooling.preview)
             implementation(libs.compose.ui.tooling)
-            implementation("androidx.compose.material:material-icons-extended")
+            implementation("androidx.compose.material:material-icons-extended:1.6.8")
 
             implementation(platform("com.google.firebase:firebase-bom:33.9.0"))
             implementation("com.google.firebase:firebase-functions")
