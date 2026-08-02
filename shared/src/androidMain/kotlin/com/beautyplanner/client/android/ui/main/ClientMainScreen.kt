@@ -52,7 +52,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.beautyplanner.client.android.ui.discover.DiscoverScreen
 import com.beautyplanner.client.android.ui.common.ClientTopBar
-import com.beautyplanner.client.android.ui.theme.AppThemeMode
 import com.beautyplanner.client.domain.model.BookingRequest
 import com.beautyplanner.client.domain.model.BookingStatus
 import com.beautyplanner.client.domain.model.ClientProfile
@@ -62,6 +61,7 @@ import com.beautyplanner.client.domain.repository.MastersRepository
 import com.beautyplanner.client.domain.repository.ReviewsRepository
 import com.beautyplanner.client.strings.LanguageOption
 import com.beautyplanner.client.strings.Strings
+import com.beautyplanner.client.theme.AppThemeMode
 
 
 private enum class MainTab(
