@@ -15,4 +15,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "BeautyPlannerClient"
 include(":shared")
+include(":composeApp")
 include(":androidApp")
