@@ -1,3 +1,5 @@
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
 pluginManagement {
     repositories {
         google()
@@ -14,5 +16,6 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "BeautyPlannerClient"
+include(":composeApp")
 include(":shared")
 include(":androidApp")

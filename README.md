@@ -113,20 +113,31 @@ Auth Screen
 
 ```
 beauty-planner-client/
-├── shared/                   # KMP: domain models, repository interfaces, fake impls, strings
-│   └── src/commonMain/kotlin/com/beautyplanner/client/
-│       ├── domain/model/     # MasterProfile, BookingRequest, MasterReview, etc.
-│       ├── domain/repository/# AuthRepository, MastersRepository, etc.
-│       ├── fake/             # AuthRepository, MastersRepository, etc.
-│       └── strings/          # Strings.kt — все UI-строки на русском
-├── androidApp/               # Android-приложение (Jetpack Compose)
-│   └── src/main/kotlin/com/beautyplanner/client/android/
-│       ├── MainActivity.kt   # Точка входа + wire-up всех зависимостей
-│       ├── navigation/       # AppNavigation.kt + Routes
-│       └── ui/               # auth, discover, master, booking, review
-└── iosApp/                   # iOS SwiftUI-заглушка
+├── composeApp/               # KMP UI/app-flow модуль
+│   └── src/
+│       ├── commonMain/       # общие auth flow, theme, root app state
+│       ├── androidMain/      # Android-specific navigation/data implementations
+│       ├── iosMain/          # iOS entry points / placeholders for ongoing migration
+│       └── commonTest/       # общие тесты
+├── shared/                   # временно хранит domain models, repository interfaces, strings
+├── androidApp/               # Android host/bootstrap layer
+│   └── src/main/kotlin/com/beautyplanner/client/android/MainActivity.kt
+└── iosApp/                   # iOS host/app layer
     └── iosApp/               # BeautyPlannerClientApp.swift + ContentView.swift
 ```
+
+### Что уже переехало в `composeApp`
+
+- общий auth flow (`AuthScreen`, `CompleteProfileScreen`)
+- общее app/root state orchestration (`BeautyBookerApp`)
+- общая тема Compose
+- Android-specific navigation и backend wiring теперь собираются через `composeApp` source sets
+
+### Что пока временно остаётся Android-only
+
+- discover / booking / reviews / master screens
+- Firebase-backed master + booking implementations
+- iOS post-auth screens (в `iosMain` пока только host seam / placeholder)
 
 ---
 
@@ -144,4 +155,3 @@ beauty-planner-client/
 1. Откройте `iosApp/iosApp.xcodeproj` в Xcode 15+.
 2. Выберите симулятор и нажмите Run.
 3. iOS-реализация сейчас является заглушкой; полная интеграция с KMP — следующий шаг.
-

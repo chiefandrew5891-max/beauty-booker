@@ -33,24 +33,18 @@ android {
 }
 
 dependencies {
-    implementation(project(":shared"))
+    implementation(project(":composeApp"))
 
-    val composeBom = platform(libs.compose.bom)
-    implementation(composeBom)
-    implementation(libs.compose.ui)
-    implementation(libs.compose.ui.tooling.preview)
-    debugImplementation(libs.compose.ui.tooling)
-    implementation(libs.compose.material3)
-    implementation(libs.compose.foundation)
     implementation(libs.compose.activity)
-    implementation(libs.navigation.compose)
-    implementation(libs.coil.compose)
-    implementation(libs.coroutines.android)
 
     implementation(platform("com.google.firebase:firebase-bom:33.9.0"))
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-auth:22.3.1")
     implementation("com.google.firebase:firebase-functions")
+}
 
-    implementation("androidx.compose.material:material-icons-extended")
+android.sourceSets["main"].java {
+    exclude("**/data/**")
+    exclude("**/navigation/**")
+    exclude("**/ui/**")
 }

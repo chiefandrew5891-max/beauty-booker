@@ -12,8 +12,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import java.net.URLDecoder
 import java.net.URLEncoder
-import com.beautyplanner.client.android.ui.auth.AuthScreen
-import com.beautyplanner.client.android.ui.auth.CompleteProfileScreen
 import com.beautyplanner.client.android.ui.booking.BookingCalendarScreen
 import com.beautyplanner.client.android.ui.booking.BookingConfirmationScreen
 import com.beautyplanner.client.android.ui.booking.BookingDayScreen
@@ -25,15 +23,11 @@ import com.beautyplanner.client.android.ui.review.LeaveReviewScreen
 import com.beautyplanner.client.android.ui.review.ReviewsScreen
 import com.beautyplanner.client.android.ui.theme.AppThemeMode
 import com.beautyplanner.client.domain.model.ClientProfile
-import com.beautyplanner.client.domain.repository.AuthRepository
 import com.beautyplanner.client.domain.repository.BookingRepository
-import com.beautyplanner.client.domain.repository.ClientProfileRepository
 import com.beautyplanner.client.domain.repository.MastersRepository
 import com.beautyplanner.client.domain.repository.ReviewsRepository
 
 object Routes {
-    const val AUTH = "auth"
-    const val COMPLETE_PROFILE = "complete_profile"
     const val DISCOVER = "discover"
     const val MASTER_PROFILE = "master_profile/{masterId}"
     const val SERVICES = "services/{masterId}"
@@ -73,50 +67,17 @@ object Routes {
 
 @Composable
 fun AppNavigation(
-    authRepository: AuthRepository,
+    client: ClientProfile?,
     mastersRepository: MastersRepository,
     bookingRepository: BookingRepository,
     reviewsRepository: ReviewsRepository,
-    clientProfileRepository: ClientProfileRepository,
     themeMode: AppThemeMode,
     onThemeModeChange: (AppThemeMode) -> Unit
 ) {
     val navController = rememberNavController()
-    var currentClient by remember { mutableStateOf<ClientProfile?>(null) }
+    var currentClient by remember(client) { mutableStateOf(client) }
 
-    NavHost(navController = navController, startDestination = Routes.AUTH) {
-
-        composable(Routes.AUTH) {
-            AuthScreen(
-                authRepository = authRepository,
-                onSignedIn = { profile ->
-                    currentClient = profile
-                    if (profile.nickname.isBlank() && !profile.isGuest) {
-                        navController.navigate(Routes.COMPLETE_PROFILE) {
-                            popUpTo(Routes.AUTH) { inclusive = true }
-                        }
-                    } else {
-                        navController.navigate(Routes.DISCOVER) {
-                            popUpTo(Routes.AUTH) { inclusive = true }
-                        }
-                    }
-                }
-            )
-        }
-
-        composable(Routes.COMPLETE_PROFILE) {
-            CompleteProfileScreen(
-                client = currentClient,
-                clientProfileRepository = clientProfileRepository,
-                onProfileComplete = { updatedProfile ->
-                    currentClient = updatedProfile
-                    navController.navigate(Routes.DISCOVER) {
-                        popUpTo(Routes.COMPLETE_PROFILE) { inclusive = true }
-                    }
-                }
-            )
-        }
-
+    NavHost(navController = navController, startDestination = Routes.DISCOVER) {
         composable(Routes.DISCOVER) {
             ClientMainScreen(
                 client = currentClient,
