@@ -1,4 +1,4 @@
-package com.beautyplanner.client.android.data
+package com.beautyplanner.client.data
 
 import com.beautyplanner.client.domain.model.AvailableSlot
 import com.beautyplanner.client.domain.model.BookingRequest

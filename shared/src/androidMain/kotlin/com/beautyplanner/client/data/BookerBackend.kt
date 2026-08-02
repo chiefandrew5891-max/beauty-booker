@@ -1,8 +1,7 @@
-package com.beautyplanner.client.android.data
+package com.beautyplanner.client.data
 
 import com.beautyplanner.client.domain.model.ClientProfile
-import com.google.firebase.functions.FirebaseFunctions
-import kotlinx.coroutines.tasks.await
+import kotlin.collections.get
 
 class BookerBackend(
     private val functions: FirebaseFunctions

@@ -21,7 +21,14 @@ kotlin {
             implementation(libs.datetime)
         }
         androidMain.dependencies {
-            implementation(libs.coroutines.android)
+            implementation(libs.compose.ui.tooling.preview)
+            implementation(libs.compose.ui.tooling)
+
+            implementation(platform("com.google.firebase:firebase-bom:33.9.0"))
+            implementation("com.google.firebase:firebase-functions")
+            implementation("com.google.firebase:firebase-firestore")
+
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1")
         }
     }
 }
