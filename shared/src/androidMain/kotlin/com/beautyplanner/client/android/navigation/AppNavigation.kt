@@ -10,8 +10,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import java.net.URLDecoder
-import java.net.URLEncoder
 import com.beautyplanner.client.android.ui.auth.AuthScreen
 import com.beautyplanner.client.android.ui.auth.CompleteProfileScreen
 import com.beautyplanner.client.android.ui.booking.BookingCalendarScreen
@@ -23,53 +21,14 @@ import com.beautyplanner.client.android.ui.master.MasterProfileScreen
 import com.beautyplanner.client.android.ui.master.ServicesScreen
 import com.beautyplanner.client.android.ui.review.LeaveReviewScreen
 import com.beautyplanner.client.android.ui.review.ReviewsScreen
-import com.beautyplanner.client.android.ui.theme.AppThemeMode
 import com.beautyplanner.client.domain.model.ClientProfile
 import com.beautyplanner.client.domain.repository.AuthRepository
 import com.beautyplanner.client.domain.repository.BookingRepository
 import com.beautyplanner.client.domain.repository.ClientProfileRepository
 import com.beautyplanner.client.domain.repository.MastersRepository
 import com.beautyplanner.client.domain.repository.ReviewsRepository
-
-object Routes {
-    const val AUTH = "auth"
-    const val COMPLETE_PROFILE = "complete_profile"
-    const val DISCOVER = "discover"
-    const val MASTER_PROFILE = "master_profile/{masterId}"
-    const val SERVICES = "services/{masterId}"
-    const val BOOKING_CALENDAR = "booking_calendar/{masterId}/{serviceId}"
-    const val BOOKING_DAY = "booking_day/{masterId}/{serviceId}/{date}"
-    const val BOOKING_FORM = "booking_form/{masterId}/{serviceId}/{dateTime}"
-    const val BOOKING_CONFIRMATION = "booking_confirmation/{bookingId}"
-    const val REVIEWS = "reviews/{masterId}"
-    const val LEAVE_REVIEW = "leave_review/{masterId}/{appointmentId}"
-
-    fun masterProfile(masterId: String) = "master_profile/$masterId"
-
-    fun services(masterId: String) = "services/$masterId"
-
-    fun bookingCalendar(masterId: String, serviceId: String) =
-        "booking_calendar/$masterId/$serviceId"
-
-    fun bookingDay(masterId: String, serviceId: String, date: String) =
-        "booking_day/$masterId/$serviceId/$date"
-
-    fun bookingForm(
-        masterId: String,
-        serviceId: String,
-        dateTime: String
-    ): String {
-        val encoded = URLEncoder.encode(dateTime, "UTF-8")
-        return "booking_form/$masterId/$serviceId/$encoded"
-    }
-
-    fun bookingConfirmation(bookingId: String) = "booking_confirmation/$bookingId"
-
-    fun reviews(masterId: String) = "reviews/$masterId"
-
-    fun leaveReview(masterId: String, appointmentId: String) =
-        "leave_review/$masterId/$appointmentId"
-}
+import com.beautyplanner.client.navigation.Routes
+import com.beautyplanner.client.theme.AppThemeMode
 
 @Composable
 fun AppNavigation(
@@ -222,7 +181,7 @@ fun AppNavigation(
             val masterId = backStack.arguments?.getString("masterId") ?: return@composable
             val serviceId = backStack.arguments?.getString("serviceId") ?: return@composable
             val encodedDateTime = backStack.arguments?.getString("dateTime") ?: return@composable
-            val appointmentDateTime = URLDecoder.decode(encodedDateTime, "UTF-8")
+            val appointmentDateTime = Routes.decodeBookingDateTime(encodedDateTime)
 
             BookingFormScreen(
                 masterId = masterId,

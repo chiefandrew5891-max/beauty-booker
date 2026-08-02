@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.library)
+    alias(libs.plugins.compose.compiler)
 }
 
 kotlin {
@@ -21,8 +22,15 @@ kotlin {
             implementation(libs.datetime)
         }
         androidMain.dependencies {
+            implementation(platform("androidx.compose:compose-bom:2024.06.00"))
+            implementation(libs.compose.ui)
+            implementation(libs.compose.foundation)
+            implementation(libs.compose.material3)
+            implementation(libs.navigation.compose)
+            implementation(libs.coil.compose)
             implementation(libs.compose.ui.tooling.preview)
             implementation(libs.compose.ui.tooling)
+            implementation("androidx.compose.material:material-icons-extended:1.6.8")
 
             implementation(platform("com.google.firebase:firebase-bom:33.9.0"))
             implementation("com.google.firebase:firebase-functions")
@@ -36,6 +44,9 @@ kotlin {
 android {
     namespace = "com.beautyplanner.client.shared"
     compileSdk = 34
+    buildFeatures {
+        compose = true
+    }
     defaultConfig {
         minSdk = 24
     }

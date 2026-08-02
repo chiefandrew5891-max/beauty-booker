@@ -12,13 +12,13 @@ import com.beautyplanner.client.data.FirebaseBookingRepository
 import com.beautyplanner.client.data.FirebaseMastersRepository
 import com.beautyplanner.client.data.BookerBackend
 import com.beautyplanner.client.android.navigation.AppNavigation
-import com.beautyplanner.client.android.ui.theme.AppThemeMode
 import com.beautyplanner.client.android.ui.theme.BeautyPlannerTheme
 import com.beautyplanner.client.domain.model.ClientProfile
 import com.beautyplanner.client.fake.AuthRepository
 import com.beautyplanner.client.data.FirestoreClientProfileRepository
 import com.beautyplanner.client.fake.FirebaseAuthRepositoryDelegate
 import com.beautyplanner.client.fake.ReviewsRepository
+import com.beautyplanner.client.theme.AppThemeMode
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await

@@ -6,12 +6,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.graphics.Color
-
-enum class AppThemeMode {
-    SYSTEM,
-    LIGHT,
-    DARK
-}
+import com.beautyplanner.client.theme.AppThemeMode
 
 private val PrimaryPink = Color(0xFFE83E8C)
 private val PrimaryPinkLight = Color(0xFFFFC1DC)
