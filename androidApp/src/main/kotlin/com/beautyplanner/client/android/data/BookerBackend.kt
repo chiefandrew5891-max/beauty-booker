@@ -74,7 +74,7 @@ class BookerBackend(
                 .call(emptyMap<String, Any>())
                 .await()
 
-            val data = result.data as? Map<*, *> ?: emptyMap<String, Any?>()
+            val data = result.getData() as? Map<*, *> ?: emptyMap<String, Any?>()
 
             val profile = ClientProfile(
                 id = data["firebaseUid"]?.toString().orEmpty(),

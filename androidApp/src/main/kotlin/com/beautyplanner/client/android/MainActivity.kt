@@ -23,6 +23,8 @@ import com.beautyplanner.client.fake.ReviewsRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.functions.ktx.functions
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,7 +32,7 @@ class MainActivity : ComponentActivity() {
 
         val firestore = FirebaseFirestore.getInstance()
         val firebaseAuth = FirebaseAuth.getInstance()
-        val functions = com.google.firebase.ktx.Firebase.functions
+        val functions = Firebase.functions
 
         val bookerBackend = BookerBackend(functions)
         val profileRepository = FirebaseBookerProfileRepository(firestore)
