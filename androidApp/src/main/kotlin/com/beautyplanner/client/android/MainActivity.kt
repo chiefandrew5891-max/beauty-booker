@@ -5,7 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberSaveable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.beautyplanner.client.android.navigation.AppNavigation
 import com.beautyplanner.client.android.ui.theme.BeautyPlannerTheme
@@ -108,7 +108,7 @@ class MainActivity : ComponentActivity() {
         val clientProfileRepository = FirestoreClientProfileRepository(firestore)
 
         setContent {
-            var appPreferences by rememberSaveable { mutableStateOf(AppPreferences()) }
+            var appPreferences by remember { mutableStateOf(AppPreferences()) }
 
             BeautyPlannerTheme(themeMode = appPreferences.themeMode) {
                 AppNavigation(
