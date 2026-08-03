@@ -62,17 +62,24 @@ import com.beautyplanner.client.domain.repository.ReviewsRepository
 import com.beautyplanner.client.strings.LanguageOption
 import com.beautyplanner.client.strings.Strings
 import com.beautyplanner.client.theme.AppThemeMode
+import com.beautyplanner.client.app.MainTab
+import com.beautyplanner.client.app.AppSettingsState
 
+private val MainTab.title: String
+    get() = when (this) {
+        MainTab.HOME -> Strings.NAV_HOME
+        MainTab.APPOINTMENTS -> Strings.NAV_APPOINTMENTS
+        MainTab.FAVORITES -> Strings.NAV_FAVORITES
+        MainTab.PROFILE -> Strings.NAV_PROFILE
+    }
 
-private enum class MainTab(
-    val title: String,
-    val icon: ImageVector
-) {
-    HOME(Strings.NAV_HOME, Icons.Outlined.Home),
-    APPOINTMENTS(Strings.NAV_APPOINTMENTS, Icons.Outlined.CalendarMonth),
-    FAVORITES(Strings.NAV_FAVORITES, Icons.Outlined.FavoriteBorder),
-    PROFILE(Strings.NAV_PROFILE, Icons.Outlined.Person)
-}
+private val MainTab.icon: ImageVector
+    get() = when (this) {
+        MainTab.HOME -> Icons.Outlined.Home
+        MainTab.APPOINTMENTS -> Icons.Outlined.CalendarMonth
+        MainTab.FAVORITES -> Icons.Outlined.FavoriteBorder
+        MainTab.PROFILE -> Icons.Outlined.Person
+    }
 
 @Composable
 fun ClientMainScreen(
@@ -82,11 +89,12 @@ fun ClientMainScreen(
     reviewsRepository: ReviewsRepository,
     themeMode: AppThemeMode,
     onThemeModeChange: (AppThemeMode) -> Unit,
+    selectedLanguageCode: String,
+    onLanguageCodeChange: (String) -> Unit,
     onMasterClick: (String) -> Unit
 ) {
     var selectedTab by rememberSaveable { mutableStateOf(MainTab.HOME) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
-    var selectedLanguageCode by rememberSaveable { mutableStateOf("system") }
 
     val topBarTitle = when {
         showSettings -> Strings.SETTINGS_TITLE
@@ -134,7 +142,7 @@ fun ClientMainScreen(
                 themeMode = themeMode,
                 selectedLanguageCode = selectedLanguageCode,
                 onThemeModeChange = onThemeModeChange,
-                onLanguageSelected = { selectedLanguageCode = it }
+                onLanguageSelected = onLanguageCodeChange
             )
 
             selectedTab == MainTab.HOME -> DiscoverScreen(
@@ -383,16 +391,10 @@ private fun SettingsContent(
     var showThemeDialog by remember { mutableStateOf(false) }
     var showLanguageDialog by remember { mutableStateOf(false) }
 
-    val selectedThemeLabel = when (themeMode) {
-        AppThemeMode.SYSTEM -> Strings.SETTINGS_THEME_SYSTEM
-        AppThemeMode.LIGHT -> Strings.SETTINGS_THEME_LIGHT
-        AppThemeMode.DARK -> Strings.SETTINGS_THEME_DARK
-    }
-
-    val selectedLanguageLabel = Strings.LANGUAGE_OPTIONS
-        .firstOrNull { it.code == selectedLanguageCode }
-        ?.label
-        ?: Strings.LANGUAGE_OPTIONS.first().label
+    val settingsState = AppSettingsState(
+        themeMode = themeMode,
+        selectedLanguageCode = selectedLanguageCode
+    )
 
     Column(
         modifier = modifier
@@ -402,12 +404,12 @@ private fun SettingsContent(
     ) {
         SelectorCard(
             title = Strings.SETTINGS_THEME,
-            value = selectedThemeLabel,
+            value = settingsState.selectedThemeLabel,
             onClick = { showThemeDialog = true }
         )
         SelectorCard(
             title = Strings.SETTINGS_LANGUAGE,
-            value = selectedLanguageLabel,
+            value = settingsState.selectedLanguageLabel,
             onClick = { showLanguageDialog = true }
         )
     }
@@ -432,7 +434,7 @@ private fun SettingsContent(
     if (showLanguageDialog) {
         SelectDialog(
             title = Strings.SETTINGS_LANGUAGE,
-            options = Strings.LANGUAGE_OPTIONS,
+            options = settingsState.languageOptions,
             selectedCode = selectedLanguageCode,
             onSelected = {
                 onLanguageSelected(it)

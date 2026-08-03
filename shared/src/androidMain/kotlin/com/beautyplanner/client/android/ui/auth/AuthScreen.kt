@@ -25,10 +25,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.beautyplanner.client.auth.AuthExecutor
+import com.beautyplanner.client.auth.AuthProvider
+import com.beautyplanner.client.auth.AuthScreenAction
+import com.beautyplanner.client.auth.AuthScreenReducer
+import com.beautyplanner.client.auth.AuthScreenState
+import com.beautyplanner.client.auth.AuthSubmissionFactory
 import com.beautyplanner.client.domain.model.ClientProfile
 import com.beautyplanner.client.domain.repository.AuthRepository
 import com.beautyplanner.client.strings.Strings
 import kotlinx.coroutines.launch
+
 
 @Composable
 fun AuthScreen(
@@ -36,13 +43,7 @@ fun AuthScreen(
     onSignedIn: (ClientProfile) -> Unit
 ) {
     val scope = rememberCoroutineScope()
-
-    var isLoading by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var isRegisterMode by remember { mutableStateOf(false) }
+    var state by remember { mutableStateOf(AuthScreenState()) }
 
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -72,16 +73,24 @@ fun AuthScreen(
             AuthButton(
                 text = Strings.AUTH_SIGN_IN_GOOGLE,
                 onClick = {
-                    isLoading = true
-                    errorMessage = null
+                    state = AuthScreenReducer.reduce(state, AuthScreenAction.SubmitGoogle)
+                    val submission = AuthSubmissionFactory.fromState(state, AuthProvider.GOOGLE)
+
                     scope.launch {
-                        authRepository.signInWithGoogle()
-                            .onSuccess { onSignedIn(it) }
-                            .onFailure { errorMessage = it.message ?: Strings.ERROR_GENERIC }
-                        isLoading = false
+                        AuthExecutor.execute(authRepository, submission)
+                            .onSuccess {
+                                state = AuthScreenReducer.complete(state)
+                                onSignedIn(it)
+                            }
+                            .onFailure {
+                                state = AuthScreenReducer.failure(
+                                    state,
+                                    it.message ?: Strings.ERROR_GENERIC
+                                )
+                            }
                     }
                 },
-                enabled = !isLoading
+                enabled = !state.isLoading
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -89,95 +98,101 @@ fun AuthScreen(
             AuthButton(
                 text = Strings.AUTH_SIGN_IN_APPLE,
                 onClick = {
-                    isLoading = true
-                    errorMessage = null
+                    state = AuthScreenReducer.reduce(state, AuthScreenAction.SubmitApple)
+                    val submission = AuthSubmissionFactory.fromState(state, AuthProvider.APPLE)
+
                     scope.launch {
-                        authRepository.signInWithApple()
-                            .onSuccess { onSignedIn(it) }
-                            .onFailure { errorMessage = it.message ?: Strings.ERROR_GENERIC }
-                        isLoading = false
+                        AuthExecutor.execute(authRepository, submission)
+                            .onSuccess {
+                                state = AuthScreenReducer.complete(state)
+                                onSignedIn(it)
+                            }
+                            .onFailure {
+                                state = AuthScreenReducer.failure(
+                                    state,
+                                    it.message ?: Strings.ERROR_GENERIC
+                                )
+                            }
                     }
                 },
-                enabled = !isLoading
+                enabled = !state.isLoading
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
             OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
+                value = state.email,
+                onValueChange = {
+                    state = AuthScreenReducer.reduce(
+                        state,
+                        AuthScreenAction.EmailChanged(it)
+                    )
+                },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(Strings.AUTH_EMAIL_LABEL) },
                 singleLine = true,
-                enabled = !isLoading
+                enabled = !state.isLoading
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
+                value = state.password,
+                onValueChange = {
+                    state = AuthScreenReducer.reduce(
+                        state,
+                        AuthScreenAction.PasswordChanged(it)
+                    )
+                },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(Strings.AUTH_PASSWORD_LABEL) },
                 singleLine = true,
-                enabled = !isLoading,
+                enabled = !state.isLoading,
                 visualTransformation = PasswordVisualTransformation()
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             AuthButton(
-                text = if (isRegisterMode) {
+                text = if (state.isRegisterMode) {
                     Strings.AUTH_EMAIL_REGISTER
                 } else {
                     Strings.AUTH_EMAIL_SIGN_IN
                 },
                 onClick = {
-                    val trimmedEmail = email.trim()
+                    state = AuthScreenReducer.reduce(state, AuthScreenAction.SubmitEmail)
 
-                    when {
-                        trimmedEmail.isBlank() -> {
-                            errorMessage = Strings.ERROR_EMPTY_EMAIL
-                        }
+                    if (!state.isLoading) return@AuthButton
 
-                        password.isBlank() -> {
-                            errorMessage = Strings.ERROR_EMPTY_PASSWORD
-                        }
+                    val submission = AuthSubmissionFactory.fromState(state, AuthProvider.EMAIL)
 
-                        else -> {
-                            isLoading = true
-                            errorMessage = null
-
-                            scope.launch {
-                                val result = if (isRegisterMode) {
-                                    authRepository.registerWithEmail(trimmedEmail, password)
-                                } else {
-                                    authRepository.signInWithEmail(trimmedEmail, password)
-                                }
-
-                                result
-                                    .onSuccess { onSignedIn(it) }
-                                    .onFailure { errorMessage = it.message ?: Strings.ERROR_GENERIC }
-
-                                isLoading = false
+                    scope.launch {
+                        AuthExecutor.execute(authRepository, submission)
+                            .onSuccess {
+                                state = AuthScreenReducer.complete(state)
+                                onSignedIn(it)
                             }
-                        }
+                            .onFailure {
+                                state = AuthScreenReducer.failure(
+                                    state,
+                                    it.message ?: Strings.ERROR_GENERIC
+                                )
+                            }
                     }
                 },
-                enabled = !isLoading
+                enabled = !state.isLoading
             )
 
             TextButton(
                 onClick = {
-                    if (!isLoading) {
-                        isRegisterMode = !isRegisterMode
-                        errorMessage = null
+                    if (!state.isLoading) {
+                        state = AuthScreenReducer.reduce(state, AuthScreenAction.ToggleMode)
                     }
                 },
-                enabled = !isLoading
+                enabled = !state.isLoading
             ) {
                 Text(
-                    text = if (isRegisterMode) {
+                    text = if (state.isRegisterMode) {
                         Strings.AUTH_SWITCH_TO_SIGN_IN
                     } else {
                         Strings.AUTH_SWITCH_TO_REGISTER
@@ -189,19 +204,33 @@ fun AuthScreen(
 
             OutlinedButton(
                 onClick = {
-                    val guest = authRepository.continueAsGuest()
-                    onSignedIn(guest)
+                    state = AuthScreenReducer.reduce(state, AuthScreenAction.SubmitGuest)
+                    val submission = AuthSubmissionFactory.fromState(state, AuthProvider.GUEST)
+
+                    scope.launch {
+                        AuthExecutor.execute(authRepository, submission)
+                            .onSuccess {
+                                state = AuthScreenReducer.complete(state)
+                                onSignedIn(it)
+                            }
+                            .onFailure {
+                                state = AuthScreenReducer.failure(
+                                    state,
+                                    it.message ?: Strings.ERROR_GENERIC
+                                )
+                            }
+                    }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = !isLoading
+                enabled = !state.isLoading
             ) {
                 Text(text = Strings.AUTH_GUEST)
             }
 
-            if (errorMessage != null) {
+            if (state.errorMessage != null) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = errorMessage!!,
+                    text = state.errorMessage!!,
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
                     textAlign = TextAlign.Center

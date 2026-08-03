@@ -29,6 +29,9 @@ import com.beautyplanner.client.domain.repository.MastersRepository
 import com.beautyplanner.client.domain.repository.ReviewsRepository
 import com.beautyplanner.client.navigation.Routes
 import com.beautyplanner.client.theme.AppThemeMode
+import com.beautyplanner.client.app.AppSessionState
+import com.beautyplanner.client.app.AuthFlowDecider
+import com.beautyplanner.client.app.AuthFlowDestination
 
 @Composable
 fun AppNavigation(
@@ -38,10 +41,12 @@ fun AppNavigation(
     reviewsRepository: ReviewsRepository,
     clientProfileRepository: ClientProfileRepository,
     themeMode: AppThemeMode,
-    onThemeModeChange: (AppThemeMode) -> Unit
+    onThemeModeChange: (AppThemeMode) -> Unit,
+    selectedLanguageCode: String,
+    onLanguageCodeChange: (String) -> Unit
 ) {
     val navController = rememberNavController()
-    var currentClient by remember { mutableStateOf<ClientProfile?>(null) }
+    var sessionState by remember { mutableStateOf(AppSessionState()) }
 
     NavHost(navController = navController, startDestination = Routes.AUTH) {
 
@@ -49,14 +54,18 @@ fun AppNavigation(
             AuthScreen(
                 authRepository = authRepository,
                 onSignedIn = { profile ->
-                    currentClient = profile
-                    if (profile.nickname.isBlank() && !profile.isGuest) {
-                        navController.navigate(Routes.COMPLETE_PROFILE) {
-                            popUpTo(Routes.AUTH) { inclusive = true }
+                    sessionState = AppSessionState(currentClient = profile)
+
+                    when (AuthFlowDecider.destinationAfterSignIn(profile)) {
+                        AuthFlowDestination.COMPLETE_PROFILE -> {
+                            navController.navigate(Routes.COMPLETE_PROFILE) {
+                                popUpTo(Routes.AUTH) { inclusive = true }
+                            }
                         }
-                    } else {
-                        navController.navigate(Routes.DISCOVER) {
-                            popUpTo(Routes.AUTH) { inclusive = true }
+                        AuthFlowDestination.DISCOVER -> {
+                            navController.navigate(Routes.DISCOVER) {
+                                popUpTo(Routes.AUTH) { inclusive = true }
+                            }
                         }
                     }
                 }
@@ -65,10 +74,10 @@ fun AppNavigation(
 
         composable(Routes.COMPLETE_PROFILE) {
             CompleteProfileScreen(
-                client = currentClient,
+                client = sessionState.currentClient,
                 clientProfileRepository = clientProfileRepository,
                 onProfileComplete = { updatedProfile ->
-                    currentClient = updatedProfile
+                    sessionState = sessionState.copy(currentClient = updatedProfile)
                     navController.navigate(Routes.DISCOVER) {
                         popUpTo(Routes.COMPLETE_PROFILE) { inclusive = true }
                     }
@@ -78,12 +87,14 @@ fun AppNavigation(
 
         composable(Routes.DISCOVER) {
             ClientMainScreen(
-                client = currentClient,
+                client = sessionState.currentClient,
                 mastersRepository = mastersRepository,
                 bookingRepository = bookingRepository,
                 reviewsRepository = reviewsRepository,
                 themeMode = themeMode,
                 onThemeModeChange = onThemeModeChange,
+                selectedLanguageCode = selectedLanguageCode,
+                onLanguageCodeChange = onLanguageCodeChange,
                 onMasterClick = { masterId ->
                     navController.navigate(Routes.masterProfile(masterId))
                 }
@@ -97,7 +108,7 @@ fun AppNavigation(
             val masterId = backStack.arguments?.getString("masterId") ?: return@composable
             MasterProfileScreen(
                 masterId = masterId,
-                client = currentClient,
+                client = sessionState.currentClient,
                 mastersRepository = mastersRepository,
                 onServiceSelected = { serviceId ->
                     navController.navigate(Routes.bookingCalendar(masterId, serviceId))
@@ -114,7 +125,7 @@ fun AppNavigation(
             val masterId = backStack.arguments?.getString("masterId") ?: return@composable
             ServicesScreen(
                 masterId = masterId,
-                client = currentClient,
+                client = sessionState.currentClient,
                 mastersRepository = mastersRepository,
                 onServiceSelected = { serviceId ->
                     navController.navigate(Routes.bookingCalendar(masterId, serviceId))
@@ -187,7 +198,7 @@ fun AppNavigation(
                 masterId = masterId,
                 serviceId = serviceId,
                 appointmentDateTime = appointmentDateTime,
-                client = currentClient,
+                client = sessionState.currentClient,
                 mastersRepository = mastersRepository,
                 bookingRepository = bookingRepository,
                 onBookingConfirmed = { bookingId ->
@@ -221,7 +232,7 @@ fun AppNavigation(
             val masterId = backStack.arguments?.getString("masterId") ?: return@composable
             ReviewsScreen(
                 masterId = masterId,
-                client = currentClient,
+                client = sessionState.currentClient,
                 reviewsRepository = reviewsRepository,
                 onLeaveReviewClick = { appointmentId ->
                     navController.navigate(Routes.leaveReview(masterId, appointmentId))
@@ -242,7 +253,7 @@ fun AppNavigation(
             LeaveReviewScreen(
                 masterId = masterId,
                 appointmentId = appointmentId,
-                client = currentClient,
+                client = sessionState.currentClient,
                 reviewsRepository = reviewsRepository,
                 onReviewSubmitted = { navController.popBackStack() },
                 onBackClick = { navController.popBackStack() }
