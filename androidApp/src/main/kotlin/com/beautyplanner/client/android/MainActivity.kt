@@ -3,12 +3,10 @@ package com.beautyplanner.client.android
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberSaveable
 import androidx.compose.runtime.setValue
-import com.beautyplanner.client.Locales
 import com.beautyplanner.client.android.navigation.AppNavigation
 import com.beautyplanner.client.android.ui.theme.BeautyPlannerTheme
 import com.beautyplanner.client.app.AppPreferences
@@ -39,11 +37,19 @@ class MainActivity : ComponentActivity() {
 
         val authRepository = AuthRepository(
             firebaseAuthRepository = object : FirebaseAuthRepositoryDelegate {
-                override suspend fun signInWithEmail(email: String, password: String): Result<ClientProfile> {
+                override suspend fun signInWithEmail(
+                    email: String,
+                    password: String
+                ): Result<ClientProfile> {
                     return try {
-                        val authResult = firebaseAuth.signInWithEmailAndPassword(email, password).await()
+                        val authResult = firebaseAuth
+                            .signInWithEmailAndPassword(email, password)
+                            .await()
+
                         val user = authResult.user
-                            ?: return Result.failure(IllegalStateException("Firebase user is null after sign-in"))
+                            ?: return Result.failure(
+                                IllegalStateException("Firebase user is null after sign-in")
+                            )
 
                         bookerBackend.bootstrapBookerUser(
                             email = user.email,
@@ -57,11 +63,19 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                override suspend fun registerWithEmail(email: String, password: String): Result<ClientProfile> {
+                override suspend fun registerWithEmail(
+                    email: String,
+                    password: String
+                ): Result<ClientProfile> {
                     return try {
-                        val authResult = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
+                        val authResult = firebaseAuth
+                            .createUserWithEmailAndPassword(email, password)
+                            .await()
+
                         val user = authResult.user
-                            ?: return Result.failure(IllegalStateException("Firebase user is null after registration"))
+                            ?: return Result.failure(
+                                IllegalStateException("Firebase user is null after registration")
+                            )
 
                         bookerBackend.bootstrapBookerUser(
                             email = user.email,
@@ -84,23 +98,17 @@ class MainActivity : ComponentActivity() {
         val mastersRepository = FirebaseMastersRepository(
             firestore = firestore
         )
+
         val bookingRepository = FirebaseBookingRepository(
             firestore = firestore,
             mastersRepository = mastersRepository
         )
+
         val reviewsRepository = ReviewsRepository()
         val clientProfileRepository = FirestoreClientProfileRepository(firestore)
 
         setContent {
             var appPreferences by rememberSaveable { mutableStateOf(AppPreferences()) }
-
-            LaunchedEffect(Unit) {
-                Locales.init(appPreferences.languageCode)
-            }
-
-            LaunchedEffect(appPreferences.languageCode) {
-                Locales.onLanguageChanged(appPreferences.languageCode)
-            }
 
             BeautyPlannerTheme(themeMode = appPreferences.themeMode) {
                 AppNavigation(

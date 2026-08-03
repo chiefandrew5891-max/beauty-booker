@@ -1,8 +1,5 @@
 package com.beautyplanner.client
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
@@ -10,8 +7,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
 object Locales {
-    var currentLanguage by mutableStateOf("ru")
-        private set
+    private var currentLanguage: String = "ru"
 
     private val json = Json {
         ignoreUnknownKeys = true
@@ -40,6 +36,10 @@ object Locales {
             ensureLoaded("en")
             ensureLoaded(currentLanguage)
         }
+    }
+
+    fun currentLanguageCode(): String {
+        return normalizeLang(currentLanguage)
     }
 
     fun t(key: String): String {
