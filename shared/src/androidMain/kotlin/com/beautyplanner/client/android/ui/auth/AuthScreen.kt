@@ -25,17 +25,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.beautyplanner.client.auth.AuthExecutor
-import com.beautyplanner.client.auth.AuthProvider
 import com.beautyplanner.client.auth.AuthScreenAction
-import com.beautyplanner.client.auth.AuthScreenReducer
 import com.beautyplanner.client.auth.AuthScreenState
-import com.beautyplanner.client.auth.AuthSubmissionFactory
 import com.beautyplanner.client.domain.model.ClientProfile
 import com.beautyplanner.client.domain.repository.AuthRepository
 import com.beautyplanner.client.strings.Strings
 import kotlinx.coroutines.launch
-
+import com.beautyplanner.client.auth.AuthController
 
 @Composable
 fun AuthScreen(
@@ -43,6 +39,7 @@ fun AuthScreen(
     onSignedIn: (ClientProfile) -> Unit
 ) {
     val scope = rememberCoroutineScope()
+    val controller = remember(authRepository) { AuthController(authRepository) }
     var state by remember { mutableStateOf(AuthScreenState()) }
 
     Surface(modifier = Modifier.fillMaxSize()) {
@@ -73,21 +70,10 @@ fun AuthScreen(
             AuthButton(
                 text = Strings.AUTH_SIGN_IN_GOOGLE,
                 onClick = {
-                    state = AuthScreenReducer.reduce(state, AuthScreenAction.SubmitGoogle)
-                    val submission = AuthSubmissionFactory.fromState(state, AuthProvider.GOOGLE)
-
                     scope.launch {
-                        AuthExecutor.execute(authRepository, submission)
-                            .onSuccess {
-                                state = AuthScreenReducer.complete(state)
-                                onSignedIn(it)
-                            }
-                            .onFailure {
-                                state = AuthScreenReducer.failure(
-                                    state,
-                                    it.message ?: Strings.ERROR_GENERIC
-                                )
-                            }
+                        val result = controller.submitGoogle(state)
+                        state = result.state
+                        result.profile?.let(onSignedIn)
                     }
                 },
                 enabled = !state.isLoading
@@ -98,21 +84,10 @@ fun AuthScreen(
             AuthButton(
                 text = Strings.AUTH_SIGN_IN_APPLE,
                 onClick = {
-                    state = AuthScreenReducer.reduce(state, AuthScreenAction.SubmitApple)
-                    val submission = AuthSubmissionFactory.fromState(state, AuthProvider.APPLE)
-
                     scope.launch {
-                        AuthExecutor.execute(authRepository, submission)
-                            .onSuccess {
-                                state = AuthScreenReducer.complete(state)
-                                onSignedIn(it)
-                            }
-                            .onFailure {
-                                state = AuthScreenReducer.failure(
-                                    state,
-                                    it.message ?: Strings.ERROR_GENERIC
-                                )
-                            }
+                        val result = controller.submitApple(state)
+                        state = result.state
+                        result.profile?.let(onSignedIn)
                     }
                 },
                 enabled = !state.isLoading
@@ -123,10 +98,7 @@ fun AuthScreen(
             OutlinedTextField(
                 value = state.email,
                 onValueChange = {
-                    state = AuthScreenReducer.reduce(
-                        state,
-                        AuthScreenAction.EmailChanged(it)
-                    )
+                    state = controller.reduce(state, AuthScreenAction.EmailChanged(it))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(Strings.AUTH_EMAIL_LABEL) },
@@ -139,10 +111,7 @@ fun AuthScreen(
             OutlinedTextField(
                 value = state.password,
                 onValueChange = {
-                    state = AuthScreenReducer.reduce(
-                        state,
-                        AuthScreenAction.PasswordChanged(it)
-                    )
+                    state = controller.reduce(state, AuthScreenAction.PasswordChanged(it))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(Strings.AUTH_PASSWORD_LABEL) },
@@ -160,24 +129,10 @@ fun AuthScreen(
                     Strings.AUTH_EMAIL_SIGN_IN
                 },
                 onClick = {
-                    state = AuthScreenReducer.reduce(state, AuthScreenAction.SubmitEmail)
-
-                    if (!state.isLoading) return@AuthButton
-
-                    val submission = AuthSubmissionFactory.fromState(state, AuthProvider.EMAIL)
-
                     scope.launch {
-                        AuthExecutor.execute(authRepository, submission)
-                            .onSuccess {
-                                state = AuthScreenReducer.complete(state)
-                                onSignedIn(it)
-                            }
-                            .onFailure {
-                                state = AuthScreenReducer.failure(
-                                    state,
-                                    it.message ?: Strings.ERROR_GENERIC
-                                )
-                            }
+                        val result = controller.submitEmail(state)
+                        state = result.state
+                        result.profile?.let(onSignedIn)
                     }
                 },
                 enabled = !state.isLoading
@@ -186,7 +141,7 @@ fun AuthScreen(
             TextButton(
                 onClick = {
                     if (!state.isLoading) {
-                        state = AuthScreenReducer.reduce(state, AuthScreenAction.ToggleMode)
+                        state = controller.reduce(state, AuthScreenAction.ToggleMode)
                     }
                 },
                 enabled = !state.isLoading
@@ -204,21 +159,10 @@ fun AuthScreen(
 
             OutlinedButton(
                 onClick = {
-                    state = AuthScreenReducer.reduce(state, AuthScreenAction.SubmitGuest)
-                    val submission = AuthSubmissionFactory.fromState(state, AuthProvider.GUEST)
-
                     scope.launch {
-                        AuthExecutor.execute(authRepository, submission)
-                            .onSuccess {
-                                state = AuthScreenReducer.complete(state)
-                                onSignedIn(it)
-                            }
-                            .onFailure {
-                                state = AuthScreenReducer.failure(
-                                    state,
-                                    it.message ?: Strings.ERROR_GENERIC
-                                )
-                            }
+                        val result = controller.submitGuest(state)
+                        state = result.state
+                        result.profile?.let(onSignedIn)
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
