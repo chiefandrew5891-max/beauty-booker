@@ -1,0 +1,47 @@
+{
+  "auth_title": "Вход",
+  "auth_subtitle": "Войдите, чтобы записываться к мастерам, сохранять записи и оставлять отзывы",
+  "auth_sign_in_google": "Продолжить с Google",
+  "auth_sign_in_apple": "Продолжить с Apple",
+  "auth_email_label": "Email",
+  "auth_password_label": "Пароль",
+  "auth_email_sign_in": "Войти по email",
+  "auth_email_register": "Зарегистрироваться",
+  "auth_switch_to_register": "Нет аккаунта? Зарегистрироваться",
+  "auth_switch_to_sign_in": "Уже есть аккаунт? Войти",
+  "auth_guest": "Продолжить как гость",
+
+  "error_generic": "Что-то пошло не так",
+  "error_empty_email": "Введите email",
+  "error_empty_password": "Введите пароль",
+
+  "settings_title": "Настройки",
+  "settings_theme": "Тема",
+  "settings_language": "Язык",
+  "settings_theme_system": "Как в системе",
+  "settings_theme_light": "Светлая",
+  "settings_theme_dark": "Тёмная",
+  "settings_close": "Закрыть",
+
+  "nav_home": "Главная",
+  "nav_appointments": "Записи",
+  "nav_favorites": "Избранное",
+  "nav_profile": "Профиль",
+
+  "appointments_title": "Мои записи",
+  "favorites_title": "Избранное",
+  "profile_title": "Профиль",
+  "discover_title": "Найдите своего мастера",
+
+  "profile_guest_mode": "Гостевой режим",
+  "profile_client_mode": "Профиль клиента",
+  "profile_settings_hint": "Здесь будут настройки профиля, уведомления и история активности.",
+  "favorites_empty": "У вас пока нет избранных мастеров",
+  "appointments_empty": "У вас пока нет записей",
+  "appointment_upcoming": "Предстоящая",
+  "appointment_completed": "Завершена",
+  "appointment_cancelled": "Отменена",
+
+  "language_name_ru": "Русский",
+  "language_name_en": "English"
+}

@@ -1,0 +1,47 @@
+{
+  "auth_title": "Sign in",
+  "auth_subtitle": "Sign in to book services, manage appointments, and leave reviews",
+  "auth_sign_in_google": "Continue with Google",
+  "auth_sign_in_apple": "Continue with Apple",
+  "auth_email_label": "Email",
+  "auth_password_label": "Password",
+  "auth_email_sign_in": "Sign in with email",
+  "auth_email_register": "Create account",
+  "auth_switch_to_register": "No account yet? Register",
+  "auth_switch_to_sign_in": "Already have an account? Sign in",
+  "auth_guest": "Continue as guest",
+
+  "error_generic": "Something went wrong",
+  "error_empty_email": "Enter email",
+  "error_empty_password": "Enter password",
+
+  "settings_title": "Settings",
+  "settings_theme": "Theme",
+  "settings_language": "Language",
+  "settings_theme_system": "Follow system",
+  "settings_theme_light": "Light",
+  "settings_theme_dark": "Dark",
+  "settings_close": "Close",
+
+  "nav_home": "Home",
+  "nav_appointments": "Appointments",
+  "nav_favorites": "Favorites",
+  "nav_profile": "Profile",
+
+  "appointments_title": "My appointments",
+  "favorites_title": "Favorites",
+  "profile_title": "Profile",
+  "discover_title": "Find your beauty specialist",
+
+  "profile_guest_mode": "Guest mode",
+  "profile_client_mode": "Client profile",
+  "profile_settings_hint": "Profile settings, notifications, and activity history will appear here.",
+  "favorites_empty": "You have no favorite specialists yet",
+  "appointments_empty": "You have no appointments yet",
+  "appointment_upcoming": "Upcoming",
+  "appointment_completed": "Completed",
+  "appointment_cancelled": "Cancelled",
+
+  "language_name_ru": "Русский",
+  "language_name_en": "English"
+}

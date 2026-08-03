@@ -3,16 +3,17 @@ package com.beautyplanner.client.android
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.rememberSaveable
 import androidx.compose.runtime.setValue
+import com.beautyplanner.client.Locales
 import com.beautyplanner.client.android.navigation.AppNavigation
 import com.beautyplanner.client.android.ui.theme.BeautyPlannerTheme
 import com.beautyplanner.client.app.AppPreferences
 import com.beautyplanner.client.app.AppPreferencesReducer
 import com.beautyplanner.client.data.BookerBackend
-import com.beautyplanner.client.data.FirebaseBookerProfileRepository
 import com.beautyplanner.client.data.FirebaseBookingRepository
 import com.beautyplanner.client.data.FirebaseMastersRepository
 import com.beautyplanner.client.data.FirestoreClientProfileRepository
@@ -35,7 +36,6 @@ class MainActivity : ComponentActivity() {
         val functions = Firebase.functions
 
         val bookerBackend = BookerBackend(functions)
-        val profileRepository = FirebaseBookerProfileRepository(firestore)
 
         val authRepository = AuthRepository(
             firebaseAuthRepository = object : FirebaseAuthRepositoryDelegate {
@@ -93,6 +93,14 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             var appPreferences by rememberSaveable { mutableStateOf(AppPreferences()) }
+
+            LaunchedEffect(Unit) {
+                Locales.init(appPreferences.languageCode)
+            }
+
+            LaunchedEffect(appPreferences.languageCode) {
+                Locales.onLanguageChanged(appPreferences.languageCode)
+            }
 
             BeautyPlannerTheme(themeMode = appPreferences.themeMode) {
                 AppNavigation(

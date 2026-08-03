@@ -12,6 +12,7 @@ kotlin {
             }
         }
     }
+
     iosX64()
     iosArm64()
     iosSimulatorArm64()
@@ -20,7 +21,9 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.coroutines.core)
             implementation(libs.datetime)
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
         }
+
         androidMain.dependencies {
             implementation(platform("androidx.compose:compose-bom:2024.06.00"))
             implementation(libs.compose.ui)
@@ -44,9 +47,11 @@ kotlin {
 android {
     namespace = "com.beautyplanner.client.shared"
     compileSdk = 34
+
     buildFeatures {
         compose = true
     }
+
     defaultConfig {
         minSdk = 24
     }
