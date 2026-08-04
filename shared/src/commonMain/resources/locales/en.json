@@ -15,6 +15,12 @@
   "error_empty_email": "Enter email",
   "error_empty_password": "Enter password",
 
+  "complete_profile_title": "Create a nickname",
+  "complete_profile_subtitle": "This name will be shown in your reviews and ratings",
+  "complete_profile_hint": "Your nickname",
+  "complete_profile_button": "Continue",
+  "complete_profile_error_empty_nickname": "Enter a nickname",
+
   "settings_title": "Settings",
   "settings_theme": "Theme",
   "settings_language": "Language",
@@ -32,16 +38,29 @@
   "favorites_title": "Favorites",
   "profile_title": "Profile",
   "discover_title": "Find your beauty specialist",
+  "discover_search_hint": "Search for a master or service",
+  "discover_categories": "Categories",
+  "discover_featured": "Featured masters",
+  "discover_all_masters": "All masters",
 
   "profile_guest_mode": "Guest mode",
   "profile_client_mode": "Client profile",
   "profile_settings_hint": "Profile settings, notifications, and activity history will appear here.",
+  "profile_guest_fallback_name": "Guest",
+
   "favorites_empty": "You have no favorite specialists yet",
   "appointments_empty": "You have no appointments yet",
   "appointment_upcoming": "Upcoming",
   "appointment_completed": "Completed",
   "appointment_cancelled": "Cancelled",
 
+  "language_name_system": "System",
   "language_name_ru": "Русский",
-  "language_name_en": "English"
+  "language_name_en": "English",
+
+  "common_all": "All",
+  "back": "Back",
+  "label_master": "Master",
+  "label_service": "Service",
+  "appointments_demo_price": "Price: from ₽1,500"
 }

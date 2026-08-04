@@ -10,15 +10,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.beautyplanner.client.auth.AuthController
+import com.beautyplanner.client.auth.AuthScreen
 import com.beautyplanner.client.auth.AuthScreenAction
 import com.beautyplanner.client.auth.AuthScreenState
-import com.beautyplanner.client.auth.AuthWelcomeScreen
 import com.beautyplanner.client.domain.model.ClientProfile
 import com.beautyplanner.client.domain.repository.AuthRepository
 import kotlinx.coroutines.launch
 
 @Composable
-fun AuthScreen(
+fun AuthScreenRoute(
     authRepository: AuthRepository,
     onSignedIn: (ClientProfile) -> Unit
 ) {
@@ -27,9 +27,8 @@ fun AuthScreen(
     var state by remember { mutableStateOf(AuthScreenState()) }
 
     Surface(modifier = Modifier.fillMaxSize()) {
-        AuthWelcomeScreen(
+        AuthScreen(
             state = state,
-            errorMessage = state.errorMessage,
             onEmailChanged = {
                 state = controller.reduce(state, AuthScreenAction.EmailChanged(it))
             },

@@ -22,17 +22,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.beautyplanner.client.Locales
 import com.beautyplanner.client.domain.model.ClientProfile
 import com.beautyplanner.client.domain.repository.ClientProfileRepository
-import com.beautyplanner.client.strings.Strings
 import kotlinx.coroutines.launch
 
-/**
- * Shown after sign-in when the user has no nickname yet.
- * Requires a nickname/public display name before entering the main app.
- *
- * The nickname will appear in all reviews and ratings the user submits.
- */
 @Composable
 fun CompleteProfileScreen(
     client: ClientProfile?,
@@ -53,7 +47,7 @@ fun CompleteProfileScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = Strings.COMPLETE_PROFILE_TITLE,
+                text = Locales.t("complete_profile_title"),
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -61,7 +55,7 @@ fun CompleteProfileScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = Strings.COMPLETE_PROFILE_SUBTITLE,
+                text = Locales.t("complete_profile_subtitle"),
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -72,7 +66,7 @@ fun CompleteProfileScreen(
             OutlinedTextField(
                 value = nickname,
                 onValueChange = { nickname = it },
-                label = { Text(Strings.COMPLETE_PROFILE_HINT) },
+                label = { Text(Locales.t("complete_profile_hint")) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 isError = errorMessage != null
@@ -93,7 +87,7 @@ fun CompleteProfileScreen(
                 onClick = {
                     val trimmed = nickname.trim()
                     if (trimmed.isBlank()) {
-                        errorMessage = "Введите никнейм"
+                        errorMessage = Locales.t("complete_profile_error_empty_nickname")
                         return@Button
                     }
                     if (client == null) return@Button
@@ -103,14 +97,14 @@ fun CompleteProfileScreen(
                     scope.launch {
                         clientProfileRepository.saveProfile(updatedProfile)
                             .onSuccess { onProfileComplete(it) }
-                            .onFailure { errorMessage = Strings.ERROR_GENERIC }
+                            .onFailure { errorMessage = Locales.t("error_generic") }
                         isLoading = false
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !isLoading
             ) {
-                Text(text = Strings.COMPLETE_PROFILE_BUTTON)
+                Text(text = Locales.t("complete_profile_button"))
             }
         }
     }

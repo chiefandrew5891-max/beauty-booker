@@ -49,6 +49,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.beautyplanner.client.Locales
 import com.beautyplanner.client.android.ui.common.ClientTopBar
 import com.beautyplanner.client.android.ui.discover.DiscoverScreen
 import com.beautyplanner.client.app.MainTab
@@ -59,7 +60,6 @@ import com.beautyplanner.client.domain.model.MasterProfile
 import com.beautyplanner.client.domain.repository.BookingRepository
 import com.beautyplanner.client.domain.repository.MastersRepository
 import com.beautyplanner.client.domain.repository.ReviewsRepository
-import com.beautyplanner.client.strings.Strings
 import com.beautyplanner.client.theme.AppThemeMode
 
 @Composable
@@ -78,11 +78,11 @@ fun ClientMainScreen(
     var showSettings by rememberSaveable { mutableStateOf(false) }
 
     val topBarTitle = when {
-        showSettings -> Strings.SETTINGS_TITLE
-        selectedTab == MainTab.FAVORITES -> Strings.FAVORITES_TITLE
-        selectedTab == MainTab.PROFILE -> Strings.PROFILE_TITLE
-        selectedTab == MainTab.APPOINTMENTS -> Strings.APPOINTMENTS_TITLE
-        else -> Strings.DISCOVER_TITLE
+        showSettings -> Locales.t("settings_title")
+        selectedTab == MainTab.FAVORITES -> Locales.t("favorites_title")
+        selectedTab == MainTab.PROFILE -> Locales.t("profile_title")
+        selectedTab == MainTab.APPOINTMENTS -> Locales.t("appointments_title")
+        else -> Locales.t("discover_title")
     }
 
     Scaffold(
@@ -92,7 +92,7 @@ fun ClientMainScreen(
                 showBack = showSettings,
                 onBackClick = { showSettings = false },
                 actionIcon = if (showSettings) null else Icons.Filled.Settings,
-                actionDescription = Strings.SETTINGS_TITLE,
+                actionDescription = Locales.t("settings_title"),
                 onActionClick = if (showSettings) null else ({ showSettings = true })
             )
         },
@@ -103,10 +103,10 @@ fun ClientMainScreen(
                 ) {
                     MainTab.entries.forEach { tab ->
                         val title = when (tab) {
-                            MainTab.HOME -> Strings.NAV_HOME
-                            MainTab.APPOINTMENTS -> Strings.NAV_APPOINTMENTS
-                            MainTab.FAVORITES -> Strings.NAV_FAVORITES
-                            MainTab.PROFILE -> Strings.NAV_PROFILE
+                            MainTab.HOME -> Locales.t("nav_home")
+                            MainTab.APPOINTMENTS -> Locales.t("nav_appointments")
+                            MainTab.FAVORITES -> Locales.t("nav_favorites")
+                            MainTab.PROFILE -> Locales.t("nav_profile")
                         }
 
                         val icon: ImageVector = when (tab) {
@@ -233,7 +233,7 @@ private fun AppointmentsContent(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         if (items.isEmpty()) {
-            Text(Strings.APPOINTMENTS_EMPTY)
+            Text(Locales.t("appointments_empty"))
         } else {
             items.forEach { booking ->
                 AppointmentCard(booking)
@@ -250,17 +250,17 @@ private fun AppointmentCard(booking: BookingRequest) {
     when (booking.status) {
         BookingStatus.CONFIRMED,
         BookingStatus.PENDING -> {
-            statusTitle = Strings.APPOINTMENT_UPCOMING
+            statusTitle = Locales.t("appointment_upcoming")
             chipColor = Color(0xFFD81B60)
         }
 
         BookingStatus.COMPLETED -> {
-            statusTitle = Strings.APPOINTMENT_COMPLETED
+            statusTitle = Locales.t("appointment_completed")
             chipColor = Color(0xFF2E7D32)
         }
 
         BookingStatus.CANCELLED -> {
-            statusTitle = Strings.APPOINTMENT_CANCELLED
+            statusTitle = Locales.t("appointment_cancelled")
             chipColor = Color(0xFF8E24AA)
         }
     }
@@ -291,19 +291,19 @@ private fun AppointmentCard(booking: BookingRequest) {
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Мастер: ${booking.masterId}",
+                text = "${Locales.t("label_master")}: ${booking.masterId}",
                 style = MaterialTheme.typography.bodyMedium
             )
 
             Text(
-                text = "Услуга: ${booking.serviceId}",
+                text = "${Locales.t("label_service")}: ${booking.serviceId}",
                 style = MaterialTheme.typography.bodyMedium
             )
 
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = "Цена: от 1 500 ₽",
+                text = Locales.t("appointments_demo_price"),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -351,7 +351,7 @@ private fun FavoritesContent(
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         if (masters.isEmpty()) {
-            Text(Strings.FAVORITES_EMPTY)
+            Text(Locales.t("favorites_empty"))
         } else {
             masters.forEach { master ->
                 Card(
@@ -414,14 +414,15 @@ private fun ProfileContent(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = client?.nickname?.ifBlank { "Гость" } ?: "Гость",
+                    text = client?.nickname?.ifBlank { Locales.t("profile_guest_fallback_name") }
+                        ?: Locales.t("profile_guest_fallback_name"),
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
                     text = if (client?.isGuest == true) {
-                        Strings.PROFILE_GUEST_MODE
+                        Locales.t("profile_guest_mode")
                     } else {
-                        Strings.PROFILE_CLIENT_MODE
+                        Locales.t("profile_client_mode")
                     },
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -429,7 +430,7 @@ private fun ProfileContent(
         }
 
         Text(
-            text = Strings.PROFILE_SETTINGS_HINT,
+            text = Locales.t("profile_settings_hint"),
             style = MaterialTheme.typography.bodyMedium
         )
     }
@@ -448,53 +449,29 @@ private fun SettingsContent(
 
     val themeOptions = remember {
         listOf(
-            AppThemeMode.SYSTEM.name to Strings.SETTINGS_THEME_SYSTEM,
-            AppThemeMode.LIGHT.name to Strings.SETTINGS_THEME_LIGHT,
-            AppThemeMode.DARK.name to Strings.SETTINGS_THEME_DARK
+            AppThemeMode.SYSTEM.name to Locales.t("settings_theme_system"),
+            AppThemeMode.LIGHT.name to Locales.t("settings_theme_light"),
+            AppThemeMode.DARK.name to Locales.t("settings_theme_dark")
         )
     }
 
-    val languageOptions = remember {
+    val languageCodes = remember {
         listOf(
-            "system" to "Системный",
-            "ru" to "Русский",
-            "en" to "English",
-            "uk" to "Українська",
-            "pl" to "Polski",
-            "de" to "Deutsch",
-            "fr" to "Français",
-            "es" to "Español",
-            "it" to "Italiano",
-            "pt" to "Português",
-            "tr" to "Türkçe",
-            "ar" to "العربية",
-            "hi" to "हिन्दी",
-            "zh-Hans" to "简体中文",
-            "zh-Hant" to "繁體中文",
-            "ja" to "日本語",
-            "ko" to "한국어",
-            "vi" to "Tiếng Việt",
-            "th" to "ไทย",
-            "id" to "Bahasa Indonesia",
-            "ms" to "Bahasa Melayu",
-            "nl" to "Nederlands",
-            "sv" to "Svenska",
-            "no" to "Norsk",
-            "da" to "Dansk",
-            "fi" to "Suomi",
-            "cs" to "Čeština",
-            "sk" to "Slovenčina",
-            "hu" to "Magyar",
-            "ro" to "Română",
-            "bg" to "Български",
-            "el" to "Ελληνικά"
+            "system", "ru", "en", "uk", "pl", "de", "fr", "es", "it", "pt",
+            "tr", "ar", "hi", "zh-Hans", "zh-Hant", "ja", "ko", "vi", "th",
+            "id", "ms", "nl", "sv", "no", "da", "fi", "cs", "sk", "hu", "ro",
+            "bg", "el"
         )
+    }
+
+    val languageOptions = remember(Locales.currentLanguage) {
+        languageCodes.map { code -> code to localizedLanguageLabel(code) }
     }
 
     val selectedThemeLabel = when (themeMode) {
-        AppThemeMode.SYSTEM -> Strings.SETTINGS_THEME_SYSTEM
-        AppThemeMode.LIGHT -> Strings.SETTINGS_THEME_LIGHT
-        AppThemeMode.DARK -> Strings.SETTINGS_THEME_DARK
+        AppThemeMode.SYSTEM -> Locales.t("settings_theme_system")
+        AppThemeMode.LIGHT -> Locales.t("settings_theme_light")
+        AppThemeMode.DARK -> Locales.t("settings_theme_dark")
     }
 
     val selectedLanguageLabel = languageOptions
@@ -509,13 +486,13 @@ private fun SettingsContent(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         SelectorCard(
-            title = Strings.SETTINGS_THEME,
+            title = Locales.t("settings_theme"),
             value = selectedThemeLabel,
             onClick = { showThemeDialog = true }
         )
 
         SelectorCard(
-            title = Strings.SETTINGS_LANGUAGE,
+            title = Locales.t("settings_language"),
             value = selectedLanguageLabel,
             onClick = { showLanguageDialog = true }
         )
@@ -523,7 +500,7 @@ private fun SettingsContent(
 
     if (showThemeDialog) {
         OptionsDialog(
-            title = Strings.SETTINGS_THEME,
+            title = Locales.t("settings_theme"),
             options = themeOptions,
             selectedCode = themeMode.name,
             onSelected = { code ->
@@ -536,7 +513,7 @@ private fun SettingsContent(
 
     if (showLanguageDialog) {
         OptionsDialog(
-            title = Strings.SETTINGS_LANGUAGE,
+            title = Locales.t("settings_language"),
             options = languageOptions,
             selectedCode = selectedLanguageCode,
             onSelected = { code ->
@@ -546,6 +523,42 @@ private fun SettingsContent(
             onDismiss = { showLanguageDialog = false }
         )
     }
+}
+
+private fun localizedLanguageLabel(code: String): String = when (code) {
+    "system" -> Locales.t("language_name_system")
+    "ru" -> Locales.t("language_name_ru")
+    "en" -> Locales.t("language_name_en")
+    "uk" -> "Українська"
+    "pl" -> "Polski"
+    "de" -> "Deutsch"
+    "fr" -> "Français"
+    "es" -> "Español"
+    "it" -> "Italiano"
+    "pt" -> "Português"
+    "tr" -> "Türkçe"
+    "ar" -> "العربية"
+    "hi" -> "हिन्दी"
+    "zh-Hans" -> "简体中文"
+    "zh-Hant" -> "繁體中文"
+    "ja" -> "日本語"
+    "ko" -> "한국어"
+    "vi" -> "Tiếng Việt"
+    "th" -> "ไทย"
+    "id" -> "Bahasa Indonesia"
+    "ms" -> "Bahasa Melayu"
+    "nl" -> "Nederlands"
+    "sv" -> "Svenska"
+    "no" -> "Norsk"
+    "da" -> "Dansk"
+    "fi" -> "Suomi"
+    "cs" -> "Čeština"
+    "sk" -> "Slovenčina"
+    "hu" -> "Magyar"
+    "ro" -> "Română"
+    "bg" -> "Български"
+    "el" -> "Ελληνικά"
+    else -> code
 }
 
 @Composable
@@ -624,7 +637,7 @@ private fun OptionsDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text(Strings.SETTINGS_CLOSE)
+                Text(Locales.t("settings_close"))
             }
         }
     )

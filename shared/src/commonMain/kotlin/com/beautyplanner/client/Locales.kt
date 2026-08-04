@@ -24,16 +24,10 @@ object Locales {
 
     suspend fun init(defaultLanguage: String = "ru") {
         loadMutex.withLock {
-            if (initialized) {
-                currentLanguage = normalizeLang(defaultLanguage)
-                ensureLoaded("en")
-                ensureLoaded(currentLanguage)
-                return
-            }
-
-            currentLanguage = normalizeLang(defaultLanguage)
+            val normalized = normalizeLang(defaultLanguage)
             ensureLoaded("en")
-            ensureLoaded(currentLanguage)
+            ensureLoaded(normalized)
+            currentLanguage = normalized
             initialized = true
         }
     }
@@ -47,6 +41,8 @@ object Locales {
             currentLanguage = normalized
         }
     }
+
+    fun currentLanguageCode(): String = normalizeLang(currentLanguage)
 
     fun t(key: String): String {
         val lang = normalizeLang(currentLanguage)

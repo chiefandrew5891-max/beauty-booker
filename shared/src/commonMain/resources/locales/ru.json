@@ -15,6 +15,12 @@
   "error_empty_email": "Введите email",
   "error_empty_password": "Введите пароль",
 
+  "complete_profile_title": "Придумайте никнейм",
+  "complete_profile_subtitle": "Это имя будет отображаться в ваших отзывах и оценках",
+  "complete_profile_hint": "Ваш никнейм",
+  "complete_profile_button": "Продолжить",
+  "complete_profile_error_empty_nickname": "Введите никнейм",
+
   "settings_title": "Настройки",
   "settings_theme": "Тема",
   "settings_language": "Язык",
@@ -32,16 +38,29 @@
   "favorites_title": "Избранное",
   "profile_title": "Профиль",
   "discover_title": "Найдите своего мастера",
+  "discover_search_hint": "Поиск мастера или услуги",
+  "discover_categories": "Категории",
+  "discover_featured": "Рекомендуемые мастера",
+  "discover_all_masters": "Все мастера",
 
   "profile_guest_mode": "Гостевой режим",
   "profile_client_mode": "Профиль клиента",
   "profile_settings_hint": "Здесь будут настройки профиля, уведомления и история активности.",
+  "profile_guest_fallback_name": "Гость",
+
   "favorites_empty": "У вас пока нет избранных мастеров",
   "appointments_empty": "У вас пока нет записей",
   "appointment_upcoming": "Предстоящая",
   "appointment_completed": "Завершена",
   "appointment_cancelled": "Отменена",
 
+  "language_name_system": "Системный",
   "language_name_ru": "Русский",
-  "language_name_en": "English"
+  "language_name_en": "English",
+
+  "common_all": "Все",
+  "back": "Назад",
+  "label_master": "Мастер",
+  "label_service": "Услуга",
+  "appointments_demo_price": "Цена: от 1 500 ₽"
 }

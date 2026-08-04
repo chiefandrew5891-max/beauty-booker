@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.library)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.compose.multiplatform)
 }
 
 kotlin {
@@ -19,25 +20,26 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            implementation(compose.runtime)
+            implementation(compose.foundation)
+            implementation(compose.material3)
+            implementation(compose.ui)
+
             implementation(libs.coroutines.core)
             implementation(libs.datetime)
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
         }
 
         androidMain.dependencies {
-            implementation(platform("androidx.compose:compose-bom:2024.06.00"))
-            implementation(libs.compose.ui)
-            implementation(libs.compose.foundation)
-            implementation(libs.compose.material3)
             implementation(libs.navigation.compose)
             implementation(libs.coil.compose)
+            implementation(libs.compose.activity)
             implementation(libs.compose.ui.tooling.preview)
             implementation(libs.compose.ui.tooling)
             implementation("androidx.compose.material:material-icons-extended:1.6.8")
 
-            implementation(platform("com.google.firebase:firebase-bom:33.9.0"))
-            implementation("com.google.firebase:firebase-functions")
-            implementation("com.google.firebase:firebase-firestore")
+            implementation("com.google.firebase:firebase-functions:21.0.0")
+            implementation("com.google.firebase:firebase-firestore:25.1.2")
 
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1")
         }

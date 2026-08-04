@@ -10,7 +10,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.beautyplanner.client.android.ui.auth.AuthScreen
+import com.beautyplanner.client.android.ui.auth.AuthScreenRoute
 import com.beautyplanner.client.android.ui.auth.CompleteProfileScreen
 import com.beautyplanner.client.android.ui.booking.BookingCalendarScreen
 import com.beautyplanner.client.android.ui.booking.BookingConfirmationScreen
@@ -51,7 +51,7 @@ fun AppNavigation(
     NavHost(navController = navController, startDestination = Routes.AUTH) {
 
         composable(Routes.AUTH) {
-            AuthScreen(
+            AuthScreenRoute(
                 authRepository = authRepository,
                 onSignedIn = { profile ->
                     sessionState = AppSessionState(currentClient = profile)

@@ -39,6 +39,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.beautyplanner.client.Locales
 import com.beautyplanner.client.android.ui.review.ReviewReminderDialog
 import com.beautyplanner.client.domain.model.ClientProfile
 import com.beautyplanner.client.domain.model.MasterCategory
@@ -46,14 +47,8 @@ import com.beautyplanner.client.domain.model.MasterProfile
 import com.beautyplanner.client.domain.model.PendingReviewPrompt
 import com.beautyplanner.client.domain.repository.MastersRepository
 import com.beautyplanner.client.domain.repository.ReviewsRepository
-import com.beautyplanner.client.strings.Strings
 import kotlinx.coroutines.launch
 
-/**
- * Discover / home screen.
- * Shows a search field, category filters, a featured masters carousel, and a full masters list.
- * Also triggers the review reminder popup when there are pending prompts.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiscoverScreen(
@@ -118,7 +113,7 @@ fun DiscoverScreen(
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                placeholder = { Text(Strings.DISCOVER_SEARCH_HINT) },
+                placeholder = { Text(Locales.t("discover_search_hint")) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -130,7 +125,7 @@ fun DiscoverScreen(
         if (categories.isNotEmpty()) {
             item {
                 Text(
-                    text = Strings.DISCOVER_CATEGORIES,
+                    text = Locales.t("discover_categories"),
                     style = MaterialTheme.typography.titleSmall,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                 )
@@ -143,7 +138,7 @@ fun DiscoverScreen(
                     FilterChip(
                         selected = selectedCategory == null,
                         onClick = { selectedCategory = null },
-                        label = { Text("Все") }
+                        label = { Text(Locales.t("common_all")) }
                     )
                     categories.forEach { cat ->
                         FilterChip(
@@ -162,7 +157,7 @@ fun DiscoverScreen(
             item {
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = Strings.DISCOVER_FEATURED,
+                    text = Locales.t("discover_featured"),
                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
@@ -181,7 +176,7 @@ fun DiscoverScreen(
         item {
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = Strings.DISCOVER_ALL_MASTERS,
+                text = Locales.t("discover_all_masters"),
                 style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
@@ -270,7 +265,7 @@ private fun MasterListItem(master: MasterProfile, onClick: () -> Unit) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "★ ${master.averageRating}  ·  ${master.reviewCount} отзывов",
+                    text = "★ ${master.averageRating} · ${master.reviewCount}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary
                 )
