@@ -1,5 +1,8 @@
 package com.beautyplanner.client
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
@@ -7,7 +10,8 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
 object Locales {
-    private var currentLanguage: String = "ru"
+    var currentLanguage by mutableStateOf("ru")
+        private set
 
     private val json = Json {
         ignoreUnknownKeys = true
@@ -20,7 +24,13 @@ object Locales {
 
     suspend fun init(defaultLanguage: String = "ru") {
         loadMutex.withLock {
-            if (initialized) return
+            if (initialized) {
+                currentLanguage = normalizeLang(defaultLanguage)
+                ensureLoaded("en")
+                ensureLoaded(currentLanguage)
+                return
+            }
+
             currentLanguage = normalizeLang(defaultLanguage)
             ensureLoaded("en")
             ensureLoaded(currentLanguage)
@@ -32,14 +42,10 @@ object Locales {
         val normalized = normalizeLang(langCode)
 
         loadMutex.withLock {
-            currentLanguage = normalized
             ensureLoaded("en")
-            ensureLoaded(currentLanguage)
+            ensureLoaded(normalized)
+            currentLanguage = normalized
         }
-    }
-
-    fun currentLanguageCode(): String {
-        return normalizeLang(currentLanguage)
     }
 
     fun t(key: String): String {
@@ -51,7 +57,7 @@ object Locales {
 
     private fun normalizeLang(raw: String?): String {
         val value = raw?.trim().orEmpty()
-        if (value.isBlank()) return "en"
+        if (value.isBlank() || value == "system") return "en"
 
         val supported = setOf("ru", "en")
 

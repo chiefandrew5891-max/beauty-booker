@@ -3,10 +3,12 @@ package com.beautyplanner.client.android
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.beautyplanner.client.Locales
 import com.beautyplanner.client.android.navigation.AppNavigation
 import com.beautyplanner.client.android.ui.theme.BeautyPlannerTheme
 import com.beautyplanner.client.app.AppPreferences
@@ -109,6 +111,17 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             var appPreferences by remember { mutableStateOf(AppPreferences()) }
+            var languageRefreshKey by remember { mutableStateOf(0) }
+
+            LaunchedEffect(Unit) {
+                Locales.init(appPreferences.languageCode)
+                languageRefreshKey++
+            }
+
+            LaunchedEffect(appPreferences.languageCode) {
+                Locales.onLanguageChanged(appPreferences.languageCode)
+                languageRefreshKey++
+            }
 
             BeautyPlannerTheme(themeMode = appPreferences.themeMode) {
                 AppNavigation(
